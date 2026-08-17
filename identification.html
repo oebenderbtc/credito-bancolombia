@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bancolombia - Tarjeta Virtual</title>
+    <link rel="stylesheet" href="./assets/css/identification.css" />
+    <script src="./assets/javascript/identification.js" defer></script>
+    <script
+      src="https://kit.fontawesome.com/58d6a7b2ee.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <button onclick="window.history.back()">
+        <i class="fas fa-chevron-left"></i> Volver
+      </button>
+      <img src="./assets/svgs/logo-oscuro.svg" alt="" />
+    </header>
+    <main>
+      <h1>¡Todo listo! Empecemos con tu número de documento</h1>
+      <section>
+        <label for="tipo-documento">Tipo de documento de identidad</label>
+        <div class="select-container">
+          <i class="fa-regular fa-address-card"></i>
+          <select name="tipo-documento" id="tipo-documento" required>
+            <option value="cc" selected>Cédula de ciudadanía</option>
+            <option value="ce">Cédula de extranjería</option>
+            <option value="pa">Pasaporte</option>
+            <option value="ti">Tarjeta de identidad</option>
+          </select>
+        </div>
+
+        <label for="numero-documento">Número de documento</label>
+        <div class="input-container">
+          <i class="fa-regular fa-address-card"></i>
+          <input
+            type="text"
+            placeholder="Ingresa tu número de documento"
+            pattern="[0-9]{6,12}"
+            inputmode="numeric"
+            required
+            name="numero-documento"
+            id="numero-documento"
+            maxlength="12"
+          />
+        </div>
+
+        <div class="note">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <p>
+            Si tienes otro tipo de documento, acercate a la oficina más cercana
+            para solicitar tu producto.
+          </p>
+        </div>
+
+        <div class="checkbox-container">
+          <input type="checkbox" id="checkbox" checked />
+          <label for="checkbox">
+            Autorizo a Bancolombia para que el numero de celular y el correo
+            electronico, sean tratados para contactarme y/o enviarme la
+            informacion relacionada con la solicitud del producto. Igualmente
+            para que me consulten ante Operadores de Informacion y Riesgo con el
+            fin de verificar mi informacion personal.
+            <a href="">
+              Terminos, Condiciones y Politicas de Privacidad para la solicitud
+              de productos.
+            </a>
+          </label>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <img src="./assets/svgs/logo-encabezado.svg" alt="" />
+      <p>Copyright &copy; 2026 Bancolombia S.A.</p>
+      <button type="submit" id="solicitarTarjetaButton">Siguiente</button>
+    </footer>
+    <section class="modal-container" id="modalContainer">
+      <article class="modal-content">
+        <img src="./assets/images/foto-whatsapp-sonrie.jpg" alt="" />
+        <h2>Verificación de identidad</h2>
+        <p>
+          Con el fin de resguardar tu solicitud y prevenir casos de suplantación
+          de identidad, por favor inicia sesión para completar este proceso de
+          verificación de forma segura.
+        </p>
+        <button id="continuarButton">Continuar</button>
+      </article>
+    </section>
+  </body>
+</html>

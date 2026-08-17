@@ -1,0 +1,232 @@
+@font-face {
+  font-family: "Cuerpo";
+  src: url("../fonts/fuente-cuerpo-regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Titular";
+  src: url("../fonts/fuente-titular-negrita.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --texto-principal: #1e1e1e;
+  --texto-nota: #5e5e5e;
+  --texto-titulos: #323232;
+  --fondo-principal: #f5f5f5;
+
+  --color-primario: #fdda24;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+p,
+span {
+  font-family: "Cuerpo", sans-serif;
+}
+h1,
+h2,
+h3 {
+  font-family: "Titular", sans-serif;
+}
+
+header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 0.5rem 1rem;
+  background-color: var(--texto-titulos);
+  border-bottom: 2px solid var(--color-primario);
+}
+header img {
+  width: 100%;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+header button {
+  color: white;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: "Cuerpo", sans-serif;
+  gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+main {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+main h1 {
+  font-size: 1.25rem;
+  color: var(--texto-titulos);
+}
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: var(--texto-principal);
+  font-family: "Cuerpo", sans-serif;
+}
+section label {
+  font-size: 0.875rem;
+}
+
+.input-container,
+.select-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid #c1c1c1;
+  padding: 0.5rem;
+}
+.input-container input,
+.select-container select {
+  border: none;
+  outline: none;
+  font-family: "Cuerpo", sans-serif;
+  font-size: 0.875rem;
+  width: 100%;
+}
+.input-container input::placeholder,
+.select-container select::placeholder {
+  font-family: "Cuerpo", sans-serif;
+  font-size: 0.875rem;
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.note svg {
+  width: 3rem;
+  height: 3rem;
+  color: #c1c1c1;
+}
+.note p {
+  font-size: 0.75rem;
+  color: dodgerblue;
+}
+
+.checkbox-container {
+  display: flex;
+  width: 100%;
+  align-items: start;
+  justify-content: start;
+  gap: 0.5rem;
+}
+.checkbox-container input[type="checkbox"] {
+  accent-color: var(--color-primario);
+}
+.checkbox-container label {
+  font-size: 0.78rem;
+  color: var(--texto-nota);
+}
+.checkbox-container a {
+  color: var(--texto-nota);
+}
+
+footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--texto-titulos);
+  color: white;
+}
+footer img {
+  width: 150px;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+footer p {
+  font-size: 0.75rem;
+  color: var(--texto-nota);
+}
+footer button {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: var(--color-primario);
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: "Titular", sans-serif;
+  font-size: 1rem;
+  border-radius: 2rem;
+}
+.disabled-button {
+  background-color: #c1c1c1 !important;
+  cursor: not-allowed;
+  color: #6c6c6c !important;
+}
+
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.modal-content {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 1rem;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.modal-content img {
+  width: 100px;
+  height: auto;
+}
+.modal-content h2 {
+  font-size: 1.25rem;
+  color: var(--texto-titulos);
+}
+.modal-content p {
+  font-size: 0.875rem;
+  color: var(--texto-principal);
+}
+.modal-content button {
+  padding: 0.625rem 3rem;
+  background-color: var(--color-primario);
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: "Titular", sans-serif;
+  font-size: 1rem;
+  border-radius: 2rem;
+}

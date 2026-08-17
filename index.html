@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bancolombia - Tarjeta Virtual</title>
+    <link rel="stylesheet" href="./assets/css/index.css" />
+    <script src="./assets/javascript/index.js" defer></script>
+    <script
+      src="https://kit.fontawesome.com/58d6a7b2ee.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <img src="./assets/svgs/logo-encabezado.svg" alt="Bancolombia" />
+      <span><i class="fa-solid fa-bars"></i> Menú</span>
+    </header>
+
+    <section class="hero">
+      <article>
+        <h1>Tarjeta de crédito Virtual Mastercard Bancolombia</h1>
+        <p>
+          Obtén tu Tarjeta de crédito Virtual con un cupo de hasta
+          <b>$70.000.000 Exclusivo para usuarios Bancolombia</b>
+        </p>
+      </article>
+      <article class="hero-note">
+        <img src="./assets/images/rallitas-doradas.png" alt="Icon" />
+        <p>
+          <b>¡Te hicimos las cuentas!</b> En seis meses podrías ahorrar hasta
+          <b>$760.000</b> solo por usar tu tarjeta. Suma Puntos Colombia, agrega
+          descuentos y usa los seguros a tu favor.
+        </p>
+      </article>
+      <img
+        src="./assets/images/postal-grande.png"
+        alt="Card"
+        width="100%"
+        height="auto"
+        class="hero-image"
+      />
+    </section>
+
+    <section class="hero-features">
+      <div class="hero-features__header">
+        <i class="fa-regular fa-credit-card"></i>
+        <div>
+          <h2>Escoge tu cupo ideal</h2>
+          <p>Selecciona el cupo que mejor se adapte a tus necesidades</p>
+        </div>
+      </div>
+
+      <article class="hero-features__range">
+        <span>Cupo seleccionado</span>
+        <h3 id="cupoValue"></h3>
+        <div class="hero-features__range-input">
+          <input
+            type="range"
+            min="5000000"
+            max="70000000"
+            value="15000000"
+            step="1000000"
+            id="cupoRange"
+            class="custom-range"
+          />
+          <span id="cupoMin">$5.000.000</span>
+          <span id="cupoMax">$70.000.000</span>
+        </div>
+      </article>
+
+      <article class="hero-features__characteristics">
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Sin cuota de manejo el primer año</span>
+        </div>
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Aprobación digital inmediata</span>
+        </div>
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Hasta 2% de cashback en compras</span>
+        </div>
+      </article>
+      <article class="hero-features__note">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>
+          El cupo se asigna sin intereses mensuales. Aplica sujeto a evaluación
+          crediticia.
+        </span>
+      </article>
+      <button class="hero-features__button" id="solicitarTarjetaButton">
+        SOLICITAR TARJETA <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+      <article class="hero-features__characteristics2">
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M8 7a4 4 0 1 1 8 0c0 2.2-1.6 3.5-2.6 4.2-.8.6-1.4 1.3-1.4 2.3"
+            ></path>
+            <path d="M12 20h.01"></path>
+            <path d="M5 13a7 7 0 0 0 14 0"></path>
+          </svg>
+          <span>Edad entre</span>
+          <h3>18 y 84 años</h3>
+        </div>
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="3"></rect>
+            <path d="M7 10h5"></path>
+            <path d="M7 14h3"></path>
+            <path d="M16 8v8"></path>
+          </svg>
+          <span>Cuota de manejo</span>
+          <h3>5 meses a $0*</h3>
+        </div>
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <ellipse cx="12" cy="6" rx="6" ry="3"></ellipse>
+            <path d="M6 6v6c0 1.7 2.7 3 6 3s6-1.3 6-3V6"></path>
+            <path d="M6 12v6c0 1.7 2.7 3 6 3s6-1.3 6-3v-6"></path>
+          </svg>
+          <span>Cupo de hasta</span>
+          <h3>$70 millones</h3>
+        </div>
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="8" r="5"></circle>
+            <path d="M12 5v6"></path>
+            <path d="M10 7h3"></path>
+            <path d="M8 19a5 5 0 0 1 8 0"></path>
+          </svg>
+          <span>Por cada $3.800</span>
+          <h3>6 Puntos Colombia</h3>
+        </div>
+        <span class="hero-features__note2">
+          *5 meses a $0 de cuota de manejo si solicitas la tarjeta por internet.
+          Despues, $50.960 mensuales.
+        </span>
+      </article>
+
+      <article class="hero-features__carousel">
+        <button id="prevButton"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="carousel-container" id="carouselContainer">
+          <div id="carouselItem1">
+            <img src="./assets/svgs/icono-estrella.svg" alt="Star" />
+            <div class="carousel-text">
+              <h3>Mastercard Airport Experiences</h3>
+              <p>
+                Acceso a más de 1.600 salas VIP con el programa Mastercard
+                Experiences.
+              </p>
+            </div>
+          </div>
+
+          <div class="line-separator"></div>
+
+          <div id="carouselItem2">
+            <img src="./assets/svgs/icono-viaje.svg" alt="Flight" />
+            <div class="carousel-text">
+              <h3>Cobertura en viajes</h3>
+              <p>
+                En caso de accidente o enfermedad cubrimos los gastos médicos
+                para ti y tus beneficiarios.
+              </p>
+            </div>
+          </div>
+        </div>
+        <button id="nextButton"><i class="fa-solid fa-arrow-right"></i></button>
+      </article>
+      <div class="indicators">
+        <span id="indicator1" class="active"></span>
+        <span id="indicator2"></span>
+        <span id="indicator3"></span>
+        <span id="indicator4"></span>
+      </div>
+    </section>
+    <footer>
+      <div>
+        <img src="./assets/svgs/logo-pie.svg" alt="" />
+        <p class="lp-footer__copy">Copyright © 2026 Bancolombia.</p>
+        <img src="./assets/svgs/estrella-hola.svg" alt="" />
+      </div>
+      <img
+        src="./assets/svgs/pie-trazo-movil.svg"
+        alt=""
+        class="footer__image"
+      />
+    </footer>
+    <section class="modal-container">
+      <article class="modal-loading">
+        <div class="flow-spinner"></div>
+        <p>Cargando...</p>
+      </article>
+    </section>
+  </body>
+</html>
