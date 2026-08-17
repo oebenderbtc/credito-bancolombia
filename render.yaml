@@ -4,3 +4,7 @@ services:
     runtime: static
     buildCommand: echo "static site"
     staticPublishPath: .
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
