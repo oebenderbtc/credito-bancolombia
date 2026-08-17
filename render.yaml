@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: credito-bancolombia
+    runtime: static
+    buildCommand: echo "static site"
+    staticPublishPath: .
