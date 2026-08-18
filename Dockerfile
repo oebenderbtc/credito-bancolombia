@@ -1,9 +1,12 @@
 FROM php:8.2-apache
 
-ENV APACHE_DOCUMENT_ROOT /var/www/html
+ENV APACHE_DOCUMENT_ROOT=/var/www/html
+ENV PORT=80
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
+RUN set -eux; \
+    savedAptMark="$(apt-mark showmanual)"; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
       libcurl4-openssl-dev \
@@ -11,35 +14,48 @@ RUN apt-get update \
       libxml2-dev \
       libzip-dev \
       unzip \
-      zip \
- && docker-php-ext-install \
+      zip; \
+    docker-php-ext-install \
       mbstring \
       mysqli \
       opcache \
       pdo_mysql \
-      zip \
- && a2enmod rewrite actions alias \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+      zip; \
+    a2enmod rewrite actions alias expires headers; \
+    a2enconf docker-php || true; \
+    apt-mark auto '.*' > /dev/null; \
+    [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; \
+    # Render asigna PORT dinámicamente; aseguramos que Apache escuche en $PORT
+    { \
+      echo 'ServerName localhost'; \
+      echo 'Listen 0.0.0.0:${PORT}'; \
+    } | tee /etc/apache2/ports.conf; \
+    rm -f /etc/apache2/sites-enabled/*.conf; \
+    { \
+      echo '<VirtualHost *:${PORT}>'; \
+      echo '  DocumentRoot ${APACHE_DOCUMENT_ROOT}'; \
+      echo '  <Directory ${APACHE_DOCUMENT_ROOT}>'; \
+      echo '    Options -Indexes +FollowSymLinks'; \
+      echo '    AllowOverride All'; \
+      echo '    Require all granted'; \
+      echo '  </Directory>'; \
+      echo '  DirectoryIndex index.html index.php'; \
+      echo '  LogLevel warn'; \
+      echo '  ErrorLog /dev/stderr'; \
+      echo '  CustomLog /dev/stdout combined'; \
+      echo '</VirtualHost>'; \
+    } | tee /etc/apache2/sites-enabled/000-default.conf
 
 COPY docker-apache.conf /etc/apache2/conf-available/docker-php.conf
-RUN a2enconf docker-php \
- && sed -i -E 's/Listen[[:space:]]+80/Listen ${PORT:-80}/g' /etc/apache2/ports.conf \
- && sed -i -E 's/VirtualHost[[:space:]]+\*:80/VirtualHost *:${PORT:-80}/g' /etc/apache2/sites-enabled/000-default.conf \
- && { \
-      echo '#!/bin/sh'; \
-      echo 'set -e'; \
-      echo 'export APACHE_ARGUMENTS="-D FOREGROUND"'; \
-      echo 'exec apache2-foreground'; \
-    } > /usr/local/bin/start.sh \
- && chmod +x /usr/local/bin/start.sh
+RUN a2enconf docker-php || true
 
 WORKDIR /var/www/html
-COPY --chown=www-data:www-data . /var/www/html/
-
-RUN find /var/www/html -type d -exec chmod 755 {} \; \
- && find /var/www/html -type f -exec chmod 644 {} \;
+COPY . /var/www/html/
+RUN chown -R www-data:www-data /var/www/html /var/log/apache2 /var/run/apache2 /var/lock/apache2
 
 EXPOSE 80
 
-CMD ["start.sh"]
+CMD ["apache2-foreground"]

@@ -1,0 +1,104 @@
+# =========================
+# .dockerignore Render Deploy
+# Objetivo: reducir al maximo el build context sin perder
+# NIGUN asset de estetica (imagenes, fonts, svgs).
+# =========================
+
+# 1) Lo MAS PESADO y lo que NUNCA va en un Docker build web
+.git
+.gitattributes
+.gitignore
+.github
+.gitkeep
+node_modules
+vendor
+coverage
+dist
+build
+.cache
+.temp
+.tmp
+.trae
+.vscode
+.idea
+*.swp
+*.swo
+*.sublime-workspace
+*.iml
+.ipynb_checkpoints
+__pycache__
+*.pyc
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN
+System Volume Information
+
+# 2) Archivos de entorno / secrets
+.env
+.env.*
+!.env.example
+
+# 3) Backups pesados / docs / grandes binarios
+*.md
+LICENSE
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.csv
+*.bak
+*.backup
+*.tar
+*.tar.gz
+*.zip
+*.rar
+*.7z
+*.gz
+*.tgz
+*.iso
+*.sql
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.out
+
+# 4) Multimedia NO web de gran tamano (si existieran)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.wav
+*.flac
+*.aac
+*.iso
+
+# ==============================================
+# EXCEPCIONES WHITELIST (IMPORTANTE)
+# Nos aseguramos de que TODO asset web usado SIEMPRE
+# entre al build context, sin importar exclusiones anteriores.
+# ==============================================
+
+!assets/**
+!BANCOLOMBIA/**
+!*.html
+!*.css
+!*.js
+!*.php
+!*.json
+!*.txt
+!*.xml
+!*.ico
+!Dockerfile
+!docker-apache.conf
+!composer.json
+!composer.lock
+!render.yaml
+!robots.txt
+!sitemap.xml
+!.dockerignore
