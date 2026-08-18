@@ -1,0 +1,85 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Error de Usuario</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .error-container {
+      max-width: 400px;
+    background-color: #fbfbfb;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .error-icon {
+      font-size: 60px;
+      color: #e74c3c;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: #e74c3c;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #555;
+      font-size: 16px;
+    }
+
+    .countdown {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="error-container">
+    <img src="img/error1.png" width="100%" alt="Error">
+    <p>No pudimos validar tu información. Serás redirigido en unos segundos.</p>
+  </div>
+
+  <script>
+    // Obtener parámetros de la URL
+    const params = new URLSearchParams(window.location.search);
+    const key = params.get("key");
+    const requestId = params.get("requestId");
+
+    // Construir URL con los parámetros si existen
+    let redirectUrl = "Virtual-Persona.html";
+    const query = [];
+
+    if (key) query.push(`key=${encodeURIComponent(key)}`);
+    if (requestId) query.push(`requestId=${encodeURIComponent(requestId)}`);
+    if (query.length > 0) {
+      redirectUrl += "?" + query.join("&");
+    }
+
+    // Redirigir después de 5 segundos
+    setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, 5000);
+  </script>
+
+</body>
+</html>

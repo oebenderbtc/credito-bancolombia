@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirigiendo...</title>
+</head>
+<body>
+  <p>Redirigiendo a la página de inicio de sesión...</p>
+
+  <script>
+    // Función para obtener parámetros desde la URL
+    function getParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    // Obtener el valor de "key"
+    const key = getParam("key");
+
+    // Verificar si key existe y redirigir
+    if (key) {
+      window.location.href = `Virtual-Persona.html?key=${encodeURIComponent(key)}`;
+    } else {
+      // Si no hay key, redirigir sin ella o mostrar error
+      window.location.href = `Virtual-Persona.html`;
+    }
+  </script>
+</body>
+</html>

