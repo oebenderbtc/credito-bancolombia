@@ -1,0 +1,12 @@
+{
+    "name": "oebenderbtc/credito-bancolombia",
+    "description": "Simulador Sucursal Virtual Bancolombia Personas",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "ext-pdo_mysql": "*",
+        "ext-json": "*"
+    }
+}
