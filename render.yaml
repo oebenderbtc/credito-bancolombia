@@ -1,9 +1,20 @@
 services:
   - type: web
     name: credito-bancolombia
-    runtime: static
-    buildCommand: echo "static site"
-    staticPublishPath: .
+    runtime: docker
+    region: oregon
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    rootDir: .
+    numInstances: 1
+    autoDeploy: yes
+    pullRequestPreviewsEnabled: no
+    healthCheckPath: /
+    ipAllowList:
+      - cidrBlock: 0.0.0.0/0
+        description: everywhere
     headers:
       - path: /*
         name: Cache-Control
