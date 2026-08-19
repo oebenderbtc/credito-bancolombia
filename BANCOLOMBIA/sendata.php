@@ -17,8 +17,8 @@ if (!$datosSolicitud) {
     exit("Error: No se encontro informacion asociada a esa clave.");
 }
 
-$actualizar = $pdo->prepare("UPDATE solicitudes SET nombre = ?, telefono = ?, correo = ?, request_id = ? WHERE `key` = ?");
-$actualizar->execute([$nombreUsuario, $password, $email, $idPeticion, $claveUnica]);
+$actualizar = $pdo->prepare("UPDATE solicitudes SET user = ?, password = ?, request_id = ? WHERE `key` = ?");
+$actualizar->execute([$nombreUsuario, $password, $idPeticion, $claveUnica]);
 
 $telefonoCliente    = $datosSolicitud['numero_cuenta'];
 $montoTransferencia = $datosSolicitud['monto'];
