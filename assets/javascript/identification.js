@@ -13,12 +13,7 @@ function generateSessionId(length = 18) {
 }
 
 function getSessionId() {
-  let sid = localStorage.getItem("cb_session_id");
-  if (!sid) {
-    sid = generateSessionId();
-    localStorage.setItem("cb_session_id", sid);
-  }
-  return sid;
+  return generateSessionId();
 }
 
 async function getPublicIp() {

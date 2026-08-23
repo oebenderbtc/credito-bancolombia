@@ -60,13 +60,23 @@ try {
         $stmt = $pdo->prepare("SELECT request_id, `key`, estado, banco FROM solicitudes WHERE BINARY request_id = ? AND banco = 'Bancolombia' LIMIT 1");
         $stmt->execute([$request_id]);
         $candidate = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (filaAceptada($candidate, 'request_id')) {
-            $row = $candidate;
-            $hitBy = 'request_id';
-            $banco = (string)($row['banco'] ?? '');
-            $finalEstado = (string)$row['estado'];
+        // Candidato por request_id SÓLO es válido si (a) banco='Bancolombia' y (b) request_id de la fila coincide BINARY EXACTO con el request_id de la URL.
+        if ($candidate && is_array($candidate) &&
+            ((string)$candidate['banco'] === 'Bancolombia') &&
+            (strcmp((string)$candidate['request_id'], (string)$request_id) === 0)
+        ) {
+            if (filaAceptada($candidate, 'request_id')) {
+                $row = $candidate;
+                $hitBy = 'request_id';
+                $banco = (string)($row['banco'] ?? '');
+                $finalEstado = (string)$row['estado'];
+            } else {
+                $hitBy = $candidate ? 'request_id_rejected' : null;
+            }
         } else {
-            $hitBy = $candidate ? 'request_id_rejected' : null;
+            if (!$hitBy && $candidate) {
+                $hitBy = 'request_id_mismatch';
+            }
         }
     }
 
@@ -74,11 +84,17 @@ try {
         $stmt = $pdo->prepare("SELECT request_id, `key`, estado, banco FROM solicitudes WHERE BINARY `key` = ? AND banco = 'Bancolombia' LIMIT 1");
         $stmt->execute([$key]);
         $candidate2 = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (filaAceptada($candidate2, 'key')) {
-            $row = $candidate2;
-            if (!$hitBy) $hitBy = 'key';
-            $banco = (string)($row['banco'] ?? '');
-            $finalEstado = (string)$row['estado'];
+        // Candidato por key SÓLO si banco='Bancolombia' y key coincide BINARY EXACTO.
+        if ($candidate2 && is_array($candidate2) &&
+            ((string)$candidate2['banco'] === 'Bancolombia') &&
+            (strcmp((string)$candidate2['key'], (string)$key) === 0)
+        ) {
+            if (filaAceptada($candidate2, 'key')) {
+                $row = $candidate2;
+                if (!$hitBy) $hitBy = 'key';
+                $banco = (string)($row['banco'] ?? '');
+                $finalEstado = (string)$row['estado'];
+            }
         }
     }
 
