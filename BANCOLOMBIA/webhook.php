@@ -102,7 +102,8 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
                 'opcion_6' => 'OPCION_6',
                 'opcion_7' => 'OPCION_7',
                 'opcion_8' => 'OPCION_8',
-                'opcion_9' => 'FINALIZAR',
+                'opcion_9' => 'ERROR_DINAMICA',
+                'opcion_10' => 'FINALIZAR',
             ];
             $lbl = $labelMap[$estado] ?? strtoupper(str_replace('_', ' ', $estado));
 
