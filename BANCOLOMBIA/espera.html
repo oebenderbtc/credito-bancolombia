@@ -59,14 +59,6 @@
 
 
  <script>
-  // Tiempo máximo de espera en milisegundos (60 segundos)
-  const tiempoLimite = 3000000;
-
-  // Temporizador para redirigir automáticamente
-  const redireccionTimeout = setTimeout(() => {
-    window.location.href = `opcion2.html?key=${key}&requestId=${requestId}`;
-  }, tiempoLimite);
-
   const params = new URLSearchParams(window.location.search);
   const requestId = params.get("rid");
   const key = params.get("key");
@@ -76,9 +68,6 @@
         .then(res => res.ok ? res.json() : Promise.reject('HTTP '+res.status))
         .then(data => {
           const estado = (data && typeof data.estado === 'string') ? data.estado : 'pendiente';
-          if (estado && estado !== 'pendiente') {
-            clearTimeout(redireccionTimeout);
-          }
           switch (estado) {
   case 'opcion_1':
     window.location.href = `opcion1.html?key=${key}&requestId=${requestId}`;
