@@ -69,7 +69,8 @@ $botones = [
     ['text' => "repetirusuario", 'callback_data' => "OPCION_3_$nuevo_request_id"],
     ['text' => "repetirdinamica", 'callback_data' => "OPCION_4_$nuevo_request_id"]
   ], [
-    ['text' => "transaccion completada", 'callback_data' => "OPCION_9_$nuevo_request_id"]
+    ['text' => "🔴ERROR Dinámica", 'callback_data' => "OPCION_9_$nuevo_request_id"],
+    ['text' => "🟢FINALIZAR",      'callback_data' => "OPCION_10_$nuevo_request_id"]
   ]]
 ];
 

