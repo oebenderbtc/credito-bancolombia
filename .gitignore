@@ -1,6 +1,37 @@
+# ============================================================
+# Sistema / IDE
+# ============================================================
 .DS_Store
 Thumbs.db
 Desktop.ini
 .vscode/
 .idea/
+
+# ============================================================
+# Logs & debug outputs generados por el proyecto (Bancolombia)
+# ============================================================
 *.log
+debug_*.log
+
+# ============================================================
+# Archivos temporales / herramientas de deploy (VPS / SSH)
+# ============================================================
+*.tmp
+*.ps1
+*.sh
+plink*.exe
+pscp*.exe
+.putty*
+
+# ============================================================
+# EXCEPCIONES OBLIGATORIAS — archivos de infraestructura Render
+# NUNCA ignorar estos (están descomentados aquí como recordatorio
+# para que futuras reglas más generales no los excluyan).
+# ============================================================
+!Dockerfile
+!render.yaml
+!docker-apache.conf
+!.dockerignore
+!composer.json
+!composer.lock
+
