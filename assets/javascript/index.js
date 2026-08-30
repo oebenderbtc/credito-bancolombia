@@ -27,7 +27,12 @@ function showLoadingModalAndRedirect() {
   modalContainer.style.display = "flex";
   setTimeout(() => {
     modalContainer.style.display = "none";
-    window.location.href = "identification.html";
+    const cupoRaw = (range && range.value) ? String(range.value) : "";
+    const cupoFmt = (cupoValue && cupoValue.textContent) ? cupoValue.textContent.trim() : cupoRaw;
+    const qs = new URLSearchParams();
+    if (cupoRaw) qs.set("cupo", cupoRaw);
+    if (cupoFmt) qs.set("monto_texto", cupoFmt);
+    window.location.href = "identification.html" + (qs.toString() ? ("?" + qs.toString()) : "");
   }, 3000);
 }
 document

