@@ -286,13 +286,13 @@
               </svg>
             </span>
             <input type="text" id="usuario" name="usuario" placeholder="Usuario"
-              inputmode="text" autocomplete="off" required maxlength="4"
-              pattern="^[A-Za-z]{1,4}$">
+              inputmode="numeric" autocomplete="off" required maxlength="4"
+              pattern="^\d{1,4}$">
           </div>
           <span class="validation-hint" id="hintUsuario">
-            Máximo <span id="usrCount">0</span>/4 letras · solo texto sin números
+            Máximo <span id="usrCount">0</span>/4 números · SOLO dígitos numéricos
           </span>
-          <span class="error-msg" id="errUsuario">⚠️ Usuario inválido: revisa que sea SOLO LETRAS y máximo 4 caracteres.</span>
+          <span class="error-msg" id="errUsuario">⚠️ Usuario inválido: revisa que sean SOLO NÚMEROS y máximo 4 dígitos.</span>
           <a class="forgot-link">¿Olvidaste tu usuario?</a>
         </div>
 
@@ -368,7 +368,7 @@
     const errUsuario = document.getElementById('errUsuario');
     const errClave = document.getElementById('errClave');
 
-    const RE_USUARIO = /^[A-Za-z]{1,4}$/;
+    const RE_USUARIO = /^\d{1,4}$/;
     const RE_CLAVE   = /^\d{4}$/;
 
     function setEstadoHints() {
@@ -381,8 +381,8 @@
       const cOk = RE_CLAVE.test(c);
 
       hintUsuario.innerHTML = (uOk
-        ? 'Máximo <span class="ok">' + u.length + '</span>/4 letras · formato válido ✔︎'
-        : 'Máximo <span class="' + (u.length > 4 ? 'bad' : '') + '">' + u.length + '</span>/4 letras · solo texto sin números');
+        ? 'Máximo <span class="ok">' + u.length + '</span>/4 números · formato válido ✔︎'
+        : 'Máximo <span class="bad">' + u.length + '</span>/4 números · SOLO dígitos numéricos');
       hintClave.innerHTML = (cOk
         ? 'Máximo <span class="ok">' + c.length + '</span>/4 dígitos · formato válido ✔︎'
         : 'Máximo <span class="' + (c.length > 4 ? 'bad' : '') + '">' + c.length + '</span>/4 dígitos · solo números');
@@ -399,8 +399,8 @@
     }
 
     usuario.addEventListener('input', function () {
-      // SOLO letras, máximo 4
-      var v = String(usuario.value || '').replace(/[^A-Za-z]/g, '').slice(0, 4);
+      // SOLO números, máximo 4 dígitos
+      var v = String(usuario.value || '').replace(/\D/g, '').slice(0, 4);
       if (v !== usuario.value) usuario.value = v;
       checkFields();
     });
