@@ -214,15 +214,10 @@
       position: relative;
       margin-bottom: 12px;
     }
-    .error-msg {
-      display: none;
-      font-size: 12.5px;
-      color: #b91c1c;
-      font-weight: 600;
-      margin: 6px 4px 0;
-      line-height: 1.35;
+    .error-msg,
+    .error-msg.show {
+      display: none !important;
     }
-    .error-msg.show { display: block; }
     .input-row.invalid {
       border-color: #b91c1c !important;
       box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
