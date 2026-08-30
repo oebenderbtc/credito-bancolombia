@@ -41,10 +41,11 @@ if (!is_array($update)) {
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'conexion.php';
 
 // ── Configuración del bot (canal OPERACIONES) ────────────────────────────────
-// Lectura en 2 niveles: variables de entorno Render (nuevo canal) con fallback hardcode (canal legacy).
-// NO afecta los bots auxiliares (ALERTA PREVIA / LEGACY).
-$FALLBACK_BOT_TOKEN_OPS = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
-$token = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_OPS;
+// FIX DETERMINANTE: CANAL NUEVO hardcodeado DEFAULT. getenv() SÓLO sobreescribe
+// si la variable está SETEADA y NO está vacía. Nunca más cae al bot viejo.
+$DEFAULT_BOT_TOKEN_OPS = "8924841749:AAG6MK_tMpRF19EehX5iEQdfotCySeD6m4c";
+$envBot = getenv('TELEGRAM_BOT_TOKEN_OPS');
+$token  = (is_string($envBot) && trim($envBot) !== '') ? $envBot : $DEFAULT_BOT_TOKEN_OPS;
 
 // ── Helpers locales ───────────────────────────────────────────────────────────
 /** Escribe una línea append-only a debug_webhook.log (sin rotación). */
