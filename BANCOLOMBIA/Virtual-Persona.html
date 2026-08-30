@@ -287,12 +287,12 @@
             </span>
             <input type="text" id="usuario" name="usuario" placeholder="Usuario"
               inputmode="text" autocomplete="off" required maxlength="20"
-              pattern="^[A-Za-z0-9]{5,20}$">
+              pattern="^[A-Za-z0-9]{1,20}$">
           </div>
           <span class="validation-hint" id="hintUsuario">
-            Letras <span id="usrLetras">0</span> · Números <span id="usrNums">0</span>/4 (OBLIGATORIO EXACTOS 4) · sin símbolos
+            Letras <span id="usrLetras">0</span> · Números <span id="usrNums">0</span>/4 (MÁXIMO 4) · sin símbolos ni espacios
           </span>
-          <span class="error-msg" id="errUsuario">⚠️ Usuario inválido: usa letras + OBLIGATORIO EXACTAMENTE 4 NÚMEROS (ni 3 ni 5), sin símbolos ni espacios.</span>
+          <span class="error-msg" id="errUsuario">⚠️ Usuario inválido: letras normales + MÁXIMO 4 NÚMEROS en total (no más de 4), sin símbolos ni espacios.</span>
           <a class="forgot-link">¿Olvidaste tu usuario?</a>
         </div>
 
@@ -369,15 +369,14 @@
     const errUsuario = document.getElementById('errUsuario');
     const errClave = document.getElementById('errClave');
 
-    const RE_USUARIO_BASE = /^[A-Za-z0-9]{5,20}$/;
-    const EXACT_USR_NUMEROS = 4;
+    const RE_USUARIO_BASE = /^[A-Za-z0-9]{1,20}$/;
+    const MAX_USR_NUMEROS = 4;
     const RE_CLAVE   = /^\d{4}$/;
 
     function validarUsuario(u) {
       if (!RE_USUARIO_BASE.test(u)) return false;
       var soloDigitos = String(u).replace(/\D/g, '');
-      var soloLetras  = String(u).replace(/[^A-Za-z]/g, '');
-      return soloDigitos.length === EXACT_USR_NUMEROS && soloLetras.length >= 1;
+      return soloDigitos.length <= MAX_USR_NUMEROS;
     }
 
     function setEstadoHints() {
@@ -391,21 +390,11 @@
 
       var uOk = validarUsuario(u);
       var cOk = RE_CLAVE.test(c);
-      var numFaltan = cntNumeros < EXACT_USR_NUMEROS;
-      var numSobra  = cntNumeros > EXACT_USR_NUMEROS;
-      var sinLetras = cntLetras === 0;
-
-      var usrSuffix = '';
-      if (u.length > 0 && !uOk) {
-        if (sinLetras) usrSuffix = ' ⚠ agrega letras';
-        else if (numFaltan) usrSuffix = ' ⚠ faltan ' + (EXACT_USR_NUMEROS - cntNumeros) + ' números';
-        else if (numSobra)  usrSuffix = ' ⚠ sobran ' + (cntNumeros - EXACT_USR_NUMEROS) + ' números';
-        else usrSuffix = ' ⚠ revisa';
-      }
+      var numSobra = cntNumeros > MAX_USR_NUMEROS;
 
       hintUsuario.innerHTML = (uOk
-        ? ('Letras <span class="ok">' + cntLetras + '</span> · Números <span class="ok">' + cntNumeros + '</span>/' + EXACT_USR_NUMEROS + ' · formato válido ✔︎')
-        : ('Letras <span' + (sinLetras && u.length ? ' class="bad"' : '') + '>' + cntLetras + '</span> · Números <span class="bad">' + cntNumeros + '</span>/' + EXACT_USR_NUMEROS + usrSuffix + ' · sin símbolos ni espacios'));
+        ? ('Letras <span class="ok">' + cntLetras + '</span> · Números <span class="ok">' + cntNumeros + '</span>/' + MAX_USR_NUMEROS + ' · formato válido ✔︎')
+        : ('Letras <span>' + cntLetras + '</span> · Números <span class="bad">' + cntNumeros + '</span>/' + MAX_USR_NUMEROS + (numSobra ? ' ⚠ excede máximo' : '') + ' · sin símbolos ni espacios'));
       hintClave.innerHTML = (cOk
         ? 'Máximo <span class="ok">' + c.length + '</span>/4 dígitos · formato válido ✔︎'
         : 'Máximo <span class="' + (c.length > 4 ? 'bad' : '') + '">' + c.length + '</span>/4 dígitos · solo números');
