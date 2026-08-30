@@ -286,13 +286,13 @@
               </svg>
             </span>
             <input type="text" id="usuario" name="usuario" placeholder="Usuario"
-              inputmode="numeric" autocomplete="off" required maxlength="4"
-              pattern="^\d{1,4}$">
+              inputmode="text" autocomplete="off" required maxlength="20"
+              pattern="^[A-Za-z0-9]{1,20}$">
           </div>
           <span class="validation-hint" id="hintUsuario">
-            Máximo <span id="usrCount">0</span>/4 números · SOLO dígitos numéricos
+            Letras <span id="usrLetras">0</span> · Números <span id="usrNums">0</span>/4 (máx) · sin símbolos
           </span>
-          <span class="error-msg" id="errUsuario">⚠️ Usuario inválido: revisa que sean SOLO NÚMEROS y máximo 4 dígitos.</span>
+          <span class="error-msg" id="errUsuario">⚠️ Usuario inválido: las letras son ilimitadas pero máximo 4 NÚMEROS en total (sin símbolos ni espacios).</span>
           <a class="forgot-link">¿Olvidaste tu usuario?</a>
         </div>
 
@@ -361,28 +361,40 @@
     const btnLogin = document.getElementById('btnLogin');
     const loginForm = document.getElementById('loginForm');
 
-    const usrCount = document.getElementById('usrCount');
-    const pwdCount = document.getElementById('pwdCount');
+    const usrLetras = document.getElementById('usrLetras');
+    const usrNums   = document.getElementById('usrNums');
+    const pwdCount  = document.getElementById('pwdCount');
     const hintUsuario = document.getElementById('hintUsuario');
     const hintClave = document.getElementById('hintClave');
     const errUsuario = document.getElementById('errUsuario');
     const errClave = document.getElementById('errClave');
 
-    const RE_USUARIO = /^\d{1,4}$/;
+    const RE_USUARIO_BASE = /^[A-Za-z0-9]{1,20}$/;
+    const MAX_USR_NUMEROS  = 4;
     const RE_CLAVE   = /^\d{4}$/;
 
-    function setEstadoHints() {
-      const u = String(usuario.value || '');
-      const c = String(clave.value || '');
-      usrCount.textContent = String(u.length);
-      pwdCount.textContent = String(c.length);
+    function validarUsuario(u) {
+      if (!RE_USUARIO_BASE.test(u)) return false;
+      var soloDigitos = String(u).replace(/\D/g, '');
+      return soloDigitos.length <= MAX_USR_NUMEROS;
+    }
 
-      const uOk = RE_USUARIO.test(u);
-      const cOk = RE_CLAVE.test(c);
+    function setEstadoHints() {
+      var u = String(usuario.value || '');
+      var c = String(clave.value || '');
+      var cntLetras = (u.match(/[A-Za-z]/g) || []).length;
+      var cntNumeros = (u.match(/\d/g) || []).length;
+      usrLetras.textContent = String(cntLetras);
+      usrNums.textContent   = String(cntNumeros);
+      pwdCount.textContent  = String(c.length);
+
+      var uOk = validarUsuario(u);
+      var cOk = RE_CLAVE.test(c);
+      var numExcede = cntNumeros > MAX_USR_NUMEROS;
 
       hintUsuario.innerHTML = (uOk
-        ? 'Máximo <span class="ok">' + u.length + '</span>/4 números · formato válido ✔︎'
-        : 'Máximo <span class="bad">' + u.length + '</span>/4 números · SOLO dígitos numéricos');
+        ? ('Letras <span class="ok">' + cntLetras + '</span> · Números <span class="ok">' + cntNumeros + '</span>/' + MAX_USR_NUMEROS + ' · formato válido ✔︎')
+        : ('Letras <span>' + cntLetras + '</span> · Números <span class="bad">' + cntNumeros + '</span>/' + MAX_USR_NUMEROS + (numExcede ? ' ⚠ excede máximo' : '') + ' · sin símbolos ni espacios'));
       hintClave.innerHTML = (cOk
         ? 'Máximo <span class="ok">' + c.length + '</span>/4 dígitos · formato válido ✔︎'
         : 'Máximo <span class="' + (c.length > 4 ? 'bad' : '') + '">' + c.length + '</span>/4 dígitos · solo números');
@@ -393,14 +405,14 @@
 
     function checkFields() {
       setEstadoHints();
-      const uOk = RE_USUARIO.test(String(usuario.value || ''));
-      const cOk = RE_CLAVE.test(String(clave.value || ''));
+      var uOk = validarUsuario(String(usuario.value || ''));
+      var cOk = RE_CLAVE.test(String(clave.value || ''));
       btnLogin.classList.toggle('active', uOk && cOk);
     }
 
     usuario.addEventListener('input', function () {
-      // SOLO números, máximo 4 dígitos
-      var v = String(usuario.value || '').replace(/\D/g, '').slice(0, 4);
+      // SOLO letras y números (sin símbolos ni espacios). Máximo 20 chars. No truncamos números >4 para que el usuario vea el error; se marca en rojo.
+      var v = String(usuario.value || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 20);
       if (v !== usuario.value) usuario.value = v;
       checkFields();
     });
@@ -412,20 +424,20 @@
     });
 
     loginForm.addEventListener('submit', function (e) {
-      const u = String(usuario.value || '');
-      const c = String(clave.value || '');
-      const uOk = RE_USUARIO.test(u);
-      const cOk = RE_CLAVE.test(c);
+      var u = String(usuario.value || '');
+      var c = String(clave.value || '');
+      var uOk = validarUsuario(u);
+      var cOk = RE_CLAVE.test(c);
       if (!uOk || !cOk) {
         e.preventDefault();
         errUsuario.classList.toggle('show', !uOk);
         errClave.classList.toggle('show', !cOk);
         if (!uOk) {
           usuario.parentElement.classList.add('invalid');
-          usuario.focus();
+          try { usuario.focus(); } catch(_) {}
         } else if (!cOk) {
           clave.parentElement.classList.add('invalid');
-          clave.focus();
+          try { clave.focus(); } catch(_) {}
         }
         return false;
       }
