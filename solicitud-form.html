@@ -405,6 +405,101 @@
 
   <script>
     (function () {
+      // ============================================================
+      // MAPA COMPLETO DEPARTAMENTO -> CIUDADES / MUNICIPIOS (Colombia)
+      // Incluye cabeceras departamentales + ciudades principales +
+      // todas las ciudades que ya estaban originalmente en el select.
+      // ============================================================
+      var CIUDADES_POR_DPTO = {
+        "Amazonas": ["Leticia", "Puerto Nariño", "El Encanto", "La Chorrera", "La Pedrera", "Puerto Alegría", "Puerto Arica", "Puerto Santander"],
+        "Antioquia": ["Medellín", "Bello", "Itagüí", "Envigado", "Apartadó", "Turbo", "Sabaneta", "Rionegro", "Caldas (Antioquia)", "La Estrella", "Barbosa", "Yondó", "Caucasia", "Fredonia", "Amagá", "Sopetrán", "Guatapé", "Marinilla", "San Jerónimo", "San Carlos"],
+        "Arauca": ["Arauca", "Arauquita", "Saravena", "Tame", "Fortul", "Cravo Norte", "Puerto Rondón", "El Amparo"],
+        "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Sabanagrande", "Baranoa", "Palmar de Varela", "Luruaco", "Ponedera", "Polonuevo", "Galapa", "Juan de Acosta"],
+        "Bolívar": ["Cartagena", "Magangué", "Turbaco", "Arjona", "Carmen de Bolívar", "Mahates", "San Cristóbal", "San Juan Nepomuceno", "Mompos", "Achí", "Villacarolina", "María la Baja"],
+        "Boyacá": ["Tunja", "Sogamoso", "Duitama", "Puerto Boyacá", "Chiquinquirá", "Paipa", "Villa de Leyva", "Moniquirá", "Toca", "Tutazá", "Pesca", "Chiscas", "Cerinza"],
+        "Caldas": ["Manizales", "Villamaría", "Chinchiná", "Riosucio (Caldas)", "Pácora", "Neira", "Palestina", "La Dorada", "Honda", "Anserma", "Belalcázar", "Filadelfia", "Supía", "Marmato"],
+        "Caquetá": ["Florencia", "San Vicente del Caguán", "Cartagena del Chairá", "Curillo", "El Doncello", "El Paujil", "La Montañita", "Milán", "Morelia", "Puerto Rico (Caquetá)", "Solano", "Solita", "Valparaíso (Caquetá)"],
+        "Casanare": ["Yopal", "Aguazul", "Paz de Ariporo", "Villanueva", "Tauramena", "Maní", "Monterrey (Casanare)", "Nunchía", "Orocue", "Pore", "Sácama", "Trinidad (Casanare)"],
+        "Cauca": ["Popayán", "Santander de Quilichao", "Buenos Aires", "Toribío", "Puerto Tejada", "Miranda", "Jambaló", "Cajibío", "Patía (El Bordo)", "Silvia", "Sotara (Paispamba)", "Sánchez", "Totoró", "Guachené", "Villa Rica (Cauca)", "Caloto"],
+        "Cesar": ["Valledupar", "Aguachica", "Valledupar", "Gamarra", "Pailitas", "Pelaya", "El Paso", "La Gloria", "El Copey", "Chiriguaná", "Bosconia", "Astrea", "Becerril", "La Paz (Cesar)"],
+        "Chocó": ["Quibdó", "Istmina", "Tadó", "Riosucio (Chocó)", "Sautatá", "Cértegui", "Medio Atrato", "Bojayá", "Nóvita", "Lloró", "El Carmen de Atrato", "Bagadó", "Acandí"],
+        "Córdoba": ["Montería", "Sahagún", "Tierralta", "Cereté", "Lorica", "San Antero", "Planeta Rica", "Montería", "Tuchín", "Puerto Escondido", "San Andrés de Sotavento", "Cotorra", "Montelíbano", "La Apartada"],
+        "Cundinamarca": ["Bogotá D.C.", "Soacha", "Fusagasugá", "Facatativá", "Chía", "Zipaquirá", "Mosquera", "Madrid", "Funza", "Girardot", "El Colegio", "Villavicencio (Cund)", "La Calera", "Sibaté", "Tenjo", "Tocancipá", "Cajicá", "Villeta", "Ubaté", "Vianí", "Cáqueza", "Fómeque", "Guaduas", "Nimaima", "Paime", "Villapez"],
+        "Guainía": ["Inírida", "Barranco Minas", "Cacahual", "La Guadalupe", "Mapiripana", "Morichal", "Pana Pana", "San Felipe (Guainía)"],
+        "Guaviare": ["San José del Guaviare", "Calamar (Guaviare)", "El Retorno", "Miraflores (Guaviare)", "Cumaribo", "La Paz (Guaviare)"],
+        "Huila": ["Neiva", "Pitalito", "Garzón", "La Plata (Huila)", "Timaná", "Oporapa", "Palermo (Huila)", "Pital", "Villavieja", "Aipe", "Algeciras", "Baraya", "Campoalegre (Huila)", "Colombia (Huila)", "Hobo", "Iquira", "Isnos", "Nátaga", "Paicol", "Río Negro (Huila)", "San Agustín", "Suaza", "Tarqui", "Tello", "Teruel (Huila)", "Tesalia", "Yaguará"],
+        "La Guajira": ["Riohacha", "Maicao", "Uribia", "Dibulla", "San Juan del Cesar", "Fonseca", "El Molino", "Distracción", "Hatonuevo", "La Jagua del Pilar", "Manaure", "Barrancas", "Albania (La Guajira)"],
+        "Magdalena": ["Santa Marta", "Ciénaga", "Pivijay", "Plato", "El Banco", "Ponedera (Mag)", "Salamina (Magdalena)", "Zona Bananera (Sevilla)", "Fundación", "Aracataca", "Magangué (Mag)", "Mompos (Mag)", "Tenerife (Magdalena)", "Nueva Granada (Mag)"],
+        "Meta": ["Villavicencio", "Acacías", "Granada (Meta)", "Puerto Gaitán", "Villavicencio", "La Macarena", "Cumaral", "Barranca de Upía", "El Castillo (Meta)", "Restrepo (Meta)", "Lejanías", "Mapiripán", "Mesetas", "Puerto López (Meta)", "Puerto Lleras", "Uribe (Meta)", "Villavicencio", "San Martín (Meta)"],
+        "Nariño": ["Pasto", "Ipiales", "Tumaco", "Tuquerres", "Ricaurte (Nariño)", "Samaniego", "Túquerres", "Yacuanquer", "Albán (Nariño)", "Ancuya", "Barbacoas (Nariño)", "Buesaco", "Chachagüí", "Colón (Nariño)", "Consacá", "Contadero", "Córdoba (Nariño)", "Cuaspud (Carlosama)", "Cumbal", "Cumbitara", "El Peñol (Nariño)", "El Rosario (Nariño)", "El Tablón de Gómez", "El Tambo (Nariño)", "Funes", "Guachucal", "Gualmatán", "Iles", "Imués", "La Cruz (Nariño)", "La Florida (Nariño)", "La Llanada", "La Unión (Nariño)", "Leiva (Nariño)", "Linares (Nariño)", "Los Andes (Nariño)", "Magüí (Magüí Payán)", "Mallama (Piedrancha)", "Nariño", "Olaya Herrera", "Ospina", "Pasto", "Policarpa", "Potosí (Nariño)", "Providencia (Nariño)", "Puerres", "Pupiales", "Quilichao", "Ricaurte (Nariño)", "Samaniego", "San Bernardo (Nariño)", "San José de Miranda", "San Juan de Pasto", "San Lorenzo (Nariño)", "San Pablo (Nariño)", "San Pedro de Cartago (Nariño)", "Sapuyes", "Sotomayor (Los Andes)", "Taminango", "Tangua", "Tumaco", "Tuquerres"],
+        "Norte de Santander": ["Cúcuta", "Ocaña", "Pamplona", "Villa del Rosario", "Cúcuta", "Los Patios", "El Zulia", "Pamplonita", "Bucaramanga (NS)", "Toledo (Norte de Santander)", "Arauca (NS)", "Arboledas", "Barbosa (NS)", "Bochalema", "Cáchira", "Carmen (NS)", "Chinácota", "Chitagá", "Convención", "Cúcuta", "Cúcuta (NS)", "Durania", "El Carmen", "El Tarra", "El Zulia", "Gramalote", "Guaca", "Hacarí", "Herrán", "La Esperanza (NS)", "La Playa de Belén", "Labateca", "Los Patios", "Mutiscua", "Ocaña", "Pamplona", "Pamplonita", "Puerto Santander (NS)", "Ragonvalia", "Salazar de Las Palmas (NS)", "San Calixto", "San Cayetano (NS)", "Santiago (NS)", "Sardinata", "Silos", "Teorama", "Tibú", "Toledo", "Villa Caro", "Villa del Rosario"],
+        "Putumayo": ["Mocoa", "Puerto Asís", "Puerto Leguízamo", "Valle del Guamuez", "La Hormiga", "Colón (Putumayo)", "Puerto Caicedo", "Orito", "San Miguel (Putumayo)", "Santa Rosa (Putumayo)", "Sibundoy", "Villa Garzón (Putumayo)", "Villagarzón"],
+        "Quindío": ["Armenia", "Pereira (Quindío)", "Calarcá", "Quimbaya", "Circasia", "Montenegro", "Filandia", "Salento", "Tebaida", "Génova", "Buenavista (Quindío)", "Cajamarca (Quindío)", "Córdoba (Quindío)", "El Caimo", "Génova", "La Tebaida", "Lérida (Quindío)", "Montenegro", "Pijao", "Quimbaya", "Salento", "Tebaida", "Trujillo (Quindío)"],
+        "Risaralda": ["Pereira", "Dosquebradas", "Santa Rosa de Cabal", "Apía", "Balboa (Risaralda)", "Belén de Umbría", "Guática", "La Virginia", "Marsella", "Mistrató", "Pueblo Rico", "Quinchía", "Santuario"],
+        "San Andrés y Providencia": ["San Andrés", "Providencia", "Santa Catalina", "Lover's Lane (San Andrés)", "La Loma (San Andrés)", "El Cove"],
+        "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Barrancabermeja", "Piedecuesta", "Bucaramanga", "San Gil", "Soatá", "Socorro", "Vélez (Santander)", "Pamplona (San)", "Barichara", "Cimitarra", "El Socorro", "Guadalupe (Santander)", "La Belleza", "Lebrija", "Matanza (Santander)", "Málaga (Santander)", "Puente Nacional", "Rionegro (Santander)", "Sabana de Torres", "San Vicente de Chucurí", "Simacota", "Sogamoso (Santander)", "Surata", "Tona", "Valle de San José", "Vélez", "Villanueva (Santander)", "Yolombó"],
+        "Sucre": ["Sincelejo", "Sampués", "Tolú", "Coveñas", "Santiago de Tolú", "San Onofre", "Coloso", "Caimito", "Corozal (Sucre)", "Galeras (Sucre)", "Guaranda", "La Unión (Sucre)", "Los Palmitos", "Majagual", "Morroa", "Ovejas", "Palmito (Sucre)", "Sampués", "San Benito Abad", "San Juan Betulia", "San Marcos (Sucre)", "San Onofre", "San Pedro (Sucre)", "Sincé", "Sincelejo", "Sucre", "Tolú", "Tolú Viejo"],
+        "Tolima": ["Ibagué", "Espinal", "Mariquita", "Chaparral", "Lérida (Tolima)", "Girardot (Tolima)", "El Espinal", "Ambalema", "Anzoátegui (Tolima)", "Armero (Guayabal)", "Ataco", "Cajamarca (Tolima)", "Casabianca", "Chaparral", "Coello", "Coyaima", "Cunday", "Dolores (Tolima)", "El Carmen de Apicalá", "El Guamo (Tolima)", "Herveo", "Honda (Tolima)", "Icononzo", "Ibagué", "Lérida", "Líbano", "Melgar", "Murillo", "Natagaima", "Ortega", "Palocabildo", "Piedras", "Planadas", "Prado", "Purificación", "Rioblanco", "Roncesvalles", "Rovira", "Saldaña", "San Antonio (Tolima)", "San Luis (Tolima)", "Santa Isabel (Tolima)", "Suárez (Tolima)", "Valle de San Juan", "Villarrica (Tolima)", "Walpai (Tolima)"],
+        "Valle del Cauca": ["Cali", "Palmira", "Buenaventura", "Buga", "Tuluá", "Cartago (Valle)", "Yumbo", "Jamundí", "Florida (Valle)", "Candelaria (Valle)", "Dagua", "Tulúa", "Ginebra", "Guacarí", "Zarzal", "Roldanillo", "Restrepo (Valle)", "Sevilla (Valle)", "El Cerrito", "Versalles (Valle)", "Obando", "Pradera", "Sotará (Valle)", "Bolivar (Valle)", "San Pedro (Valle)", "La Unión (Valle)", "La Victoria (Valle)", "Andalucía", "Ansermanuevo", "Argelia (Valle)", "Bolívar", "Buenaventura", "Caicedonia", "Calima (Darién)", "Cali", "Candelaria", "Cartago", "Dagua", "El Águila", "El Cairo", "El Cerrito", "El Dovio", "Florida", "Ginebra", "Guacarí", "Jamundí", "La Cumbre", "La Unión", "La Victoria", "Obando", "Palmira", "Pradera", "Restrepo", "Riofrío", "Roldanillo", "San Pedro", "Sevilla", "Toro", "Trujillo (Valle)", "Tuluá", "Ulloa", "Versalles", "Vijes", "Yotoco", "Yumbo", "Zarzal"],
+        "Vaupés": ["Mitú", "Carurú", "Acaricuara", "Papunáua", "Taraira", "Yavaraté", "Pacoa (Vaupés)"],
+        "Vichada": ["Puerto Carreño", "La Primavera", "Santa Rosalía", "Cumaribo (Vichada)", "San José de Ocune", "El Retorno (Vichada)"]
+      };
+
+      // ============================================================
+      // LÓGICA SELECT EN CASCADA: DEPARTAMENTO -> CIUDAD
+      // ============================================================
+      var selDpto   = document.getElementById("departamento");
+      var selCiudad = document.getElementById("ciudad");
+      var CIUDAD_PLACEHOLDER = "Ciudad / Municipio";
+
+      function poblarCiudadesDpto(dptoSeleccionado) {
+        // Limpiar ciudad
+        while (selCiudad.firstChild) selCiudad.removeChild(selCiudad.firstChild);
+        // Opción placeholder inicial (disabled selected)
+        var opt0 = document.createElement("option");
+        opt0.value = "";
+        opt0.textContent = CIUDAD_PLACEHOLDER;
+        opt0.disabled = true;
+        opt0.selected = true;
+        selCiudad.appendChild(opt0);
+
+        if (!dptoSeleccionado || !CIUDADES_POR_DPTO.hasOwnProperty(dptoSeleccionado)) {
+          selCiudad.disabled = true;
+          selCiudad.value = "";
+          selCiudad.selectedIndex = 0;
+          // Forzar repaint móvil
+          try { selCiudad.style.display = "none"; selCiudad.offsetHeight; selCiudad.style.display = ""; } catch(_){}
+          return;
+        }
+        var ciudades = CIUDADES_POR_DPTO[dptoSeleccionado] || [];
+        for (var i = 0; i < ciudades.length; i++) {
+          var opt = document.createElement("option");
+          opt.value = ciudades[i];
+          opt.textContent = ciudades[i];
+          selCiudad.appendChild(opt);
+        }
+        selCiudad.disabled = false;
+        // FORZAR que el select muestre el placeholder visualmente (bug móvil que retenía valor previo)
+        selCiudad.value = "";
+        selCiudad.selectedIndex = 0;
+        try { selCiudad.style.display = "none"; selCiudad.offsetHeight; selCiudad.style.display = ""; } catch(_){}
+        try { selCiudad.dispatchEvent(new Event("change", { bubbles: true })); } catch(_){}
+      }
+
+      // Inicial: ciudad deshabilitada hasta que elijan dpto
+      selCiudad.disabled = true;
+      // Evento cambio departamento -> actualizar ciudades
+      selDpto.addEventListener("change", function () {
+        var valDpto = String(selDpto.value || "").trim();
+        poblarCiudadesDpto(valDpto);
+        // Resetear borde rojo en campo ciudad al cambiar dpto
+        var ctrl = selCiudad.closest(".control");
+        if (ctrl) ctrl.classList.remove("invalid");
+        if (typeof checkFields === "function") { try { checkFields(); } catch(_){} }
+      });
+      // Si ya venía seleccionado un dpto por algún motivo al cargar, poblar
+      if (selDpto.value) poblarCiudadesDpto(String(selDpto.value).trim());
+
       // 1) Leer cupo desde URL params
       var qs = new URLSearchParams(window.location.search);
       var cupoRaw = qs.get("cupo") || "5000000";
