@@ -43,7 +43,7 @@
       align-items: center;
       justify-content: space-between;
     }
-    .logo-bco-svg { height: 34px; width: auto; display: block; }
+    .logo-bco-img { height: 34px; width: auto; display: block; }
     .topbar .back-btn {
       width: 36px;
       height: 36px;
@@ -247,20 +247,9 @@
 </head>
 <body>
   <div class="page-wrap">
-    <!-- BARRA LOGO MODERNO BANCOLOMBIA NEGRO (MISMO LOGO QUE finalizado.html, el de la foto del usuario) -->
+    <!-- BARRA LOGO ORIGINAL = MISMO ARCHIVO que landing index.html (assets/svgs/logo-encabezado.svg) -->
     <header class="topbar">
-      <svg class="logo-bco-svg" viewBox="0 0 640 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bancolombia">
-        <defs><clipPath id="logoBcoClipSol"><rect width="640" height="120"/></clipPath></defs>
-        <g fill="#1f1f1f" clip-path="url(#logoBcoClipSol)" font-family="'Helvetica Neue','Roboto Black',Arial Black,Arial,sans-serif" font-weight="900">
-          <g transform="translate(0,22)">
-            <path d="M 12,70 L 85,14 Q 106,2 L 33,55 Z"/>
-            <path d="M 3,88 L 90,22 L 110,12 L 22,80 Z"/>
-            <path d="M 1,104 L 74,46 L 94,36 L 21,96 Z"/>
-          </g>
-          <text x="148" y="86" font-size="82" letter-spacing="-1.2">Bancolombia</text>
-          <circle cx="574" cy="28" r="5.2"/>
-        </g>
-      </svg>
+      <img class="logo-bco-img" src="./assets/svgs/logo-encabezado.svg" alt="Bancolombia" />
       <button class="back-btn" aria-label="Volver" onclick="history.length>1?history.back():location.href='index.html'">
         <i class="fa-solid fa-arrow-left"></i>
       </button>
