@@ -43,9 +43,13 @@ if (!$data) {
 $nombre   = $data['nombre'];
 $telefono = $data['telefono'];
 
-// ── Paso 5: Telegram (canal propio, token/chat DIFERENTES intencionalmente) ───
-$token   = "7617726809:AAHd16JUqx-m01rHFilp6BcOsCp4iXD1L-U";
-$chat_id = "-4801629674";
+// ── Paso 5: Telegram (mismo canal OPERACIONES unificado en esta instalación) ───
+// 1) Si Render tiene TELEGRAM_BOT_TOKEN_OPS / TELEGRAM_CHAT_ID_OPS => se usan (nuevo canal).
+// 2) Fallback LEGACY => canal propio anterior "Logo recibido" (token 7617... / chat -4801629674).
+$FALLBACK_BOT_TOKEN_LEGACY = "7617726809:AAHd16JUqx-m01rHFilp6BcOsCp4iXD1L-U";
+$FALLBACK_CHAT_ID_LEGACY   = "-4801629674";
+$token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_LEGACY;
+$chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_LEGACY;
 
 $mensaje  = "📥 Logo recibido:\n";
 $mensaje .= "👤 Usuario: $nombre\n";

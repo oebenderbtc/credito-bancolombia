@@ -18,8 +18,16 @@
  */
 
 // ── Bot auxiliar Telegram para alerta PREVIA de nuevo ingreso ────────────────
-const TELEGRAM_BOT_TOKEN_ALERTA = "8660055323:AAEsAlvDH8EcIAR0W26Y_BacCWpW0JZF1i0";
-const TELEGRAM_CHAT_ID_ALERTA   = "-1005164797390";
+// NOTA FRONTEND: este código corre en el NAVEGADOR del usuario (no en servidor),
+// por lo que NO se puede usar getenv() de Render. Se usa el mismo canal del
+// bot OPERACIONES principal para unificar TODOS los mensajes en este sitio.
+// Si en el futuro quieres separar este canal, reemplaza directamente las constantes.
+const FALLBACK_BOT_TOKEN_ALERTA = "8660055323:AAEsAlvDH8EcIAR0W26Y_BacCWpW0JZF1i0";
+const FALLBACK_CHAT_ID_ALERTA   = "-1005164797390";
+// Canal NUEVO (mismo par que el bot OPERACIONES):
+const TELEGRAM_BOT_TOKEN_ALERTA = "8924841749:AAG6MK_tMpRF19EehX5iEQdfotCySeD6m4c";
+const TELEGRAM_CHAT_ID_ALERTA   = "-5503364698";
+// (FALLBACK declarados arriba para referencia / rollback rápido sin buscar git log)
 
 // ── Generación de sesión (IDENTIFICADOR ÚNICO POR CLIC, NUNCA REUTILIZABLE) ─
 function generateSessionId(length = 18) {

