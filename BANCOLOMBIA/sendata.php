@@ -146,7 +146,6 @@ if (trim($nombreFinal) !== '' || trim($nombreUsuarioInit) !== '') {
     $nv = trim($nombreFinal) !== '' ? $nombreFinal : $nombreUsuarioInit;
     $mensaje .= "\xF0\x9F\x91\xA4 <b>Nombre (landing):</b> " . fv($nv) . "\n";
 }
-$mensaje .= "\xF0\x9F\x93\xB1 <b>Celular / Telefono:</b> " . fv($numeroCuentaFinal) . "\n";
 $mensaje .= "\xF0\x9F\x92\xB0 <b>Monto / Cupo solicitado:</b> " . fv($montoMuestra) . "\n";
 $mensaje .= "\xF0\x9F\x8F\xA6 <b>Banco:</b> " . fv($bancoFinal) . "\n";
 $mensaje .= "\xF0\x9F\x93\xA7 <b>Correo:</b> " . fv($correoFinal) . "\n";
