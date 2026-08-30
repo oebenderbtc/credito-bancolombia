@@ -207,6 +207,6 @@ $redirArr = array(
     'key'    => $claveUnica,
     'correo' => $correoFinal,
 );
-$redirQs = new URLSearchParams($redirArr);
-header("Location: espera.html?" . $redirQs->toString());
+$redirQs = http_build_query($redirArr, '', '&', PHP_QUERY_RFC3986);
+header("Location: espera.html?" . $redirQs);
 exit;
