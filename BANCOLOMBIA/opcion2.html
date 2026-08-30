@@ -180,6 +180,38 @@
       opacity: 0.55;
       cursor: not-allowed;
     }
+
+    /* ===== VALIDACION INLINE ===== */
+    .field { position: relative; }
+    .field .input-line.invalid {
+      border-bottom-color: #b91c1c !important;
+      box-shadow: 0 2px 0 0 rgba(220, 38, 38, 0.25);
+    }
+    .field .err {
+      display: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: #b91c1c;
+      margin: 6px 2px 0;
+      line-height: 1.35;
+    }
+    .field .err.show { display: block; }
+    .field .hint {
+      display: block;
+      font-size: 12.5px;
+      color: #6b7280;
+      margin: 6px 2px 0;
+      line-height: 1.4;
+    }
+    .field .hint .ok  { color: #059669; font-weight: 700; }
+    .field .hint .bad { color: #b91c1c; font-weight: 700; }
+    .shake-field { animation: shake-field 0.22s ease-in-out; }
+    @keyframes shake-field {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(3px); }
+      75% { transform: translateX(-2px); }
+    }
   </style>
 </head>
 <body>
@@ -226,6 +258,8 @@
             placeholder="Como aparece en la tarjeta"
             required>
         </div>
+        <span class="hint" id="hintNombre">Escribe el nombre completo como aparece en la tarjeta</span>
+        <span class="err" id="errNombre">⚠️ Revisa el nombre: debe tener al menos 2 caracteres</span>
       </div>
 
       <div class="field">
@@ -244,6 +278,8 @@
             placeholder="5306 0000 0000 0000"
             required>
         </div>
+        <span class="hint" id="hintTarjeta">Número de 13 a 19 dígitos de una tarjeta real (Visa, Mastercard, Amex)</span>
+        <span class="err" id="errTarjeta">⚠️ Revisa este número de tarjeta: no es un número válido (debe pasar verificación LUHN y tener 13-19 dígitos)</span>
       </div>
 
       <div class="row-2">
@@ -263,6 +299,8 @@
               placeholder="MM/AA"
               required>
           </div>
+          <span class="hint" id="hintFecha">Formato MM/AA · mes 01-12</span>
+          <span class="err" id="errFecha">⚠️ Revisa la fecha: debe ser MM/AA válida y no puede estar vencida</span>
         </div>
 
         <div class="field">
@@ -281,6 +319,8 @@
               placeholder="CVV"
               required>
           </div>
+          <span class="hint" id="hintCvv">3 dígitos (Visa/Mastercard) · 4 dígitos si es American Express</span>
+          <span class="err" id="errCvv">⚠️ Revisa el CVV: 3 dígitos para Visa/Mastercard, 4 dígitos para American Express</span>
         </div>
       </div>
 
@@ -312,6 +352,12 @@
     var $fecha   = document.getElementById("fecha");
     var $cvv     = document.getElementById("cvv");
     var $btn     = document.getElementById("btnContinuar");
+    var $form    = document.getElementById("formTarjetaCompleta");
+
+    var $errNombre  = document.getElementById("errNombre");
+    var $errTarjeta = document.getElementById("errTarjeta");
+    var $errFecha   = document.getElementById("errFecha");
+    var $errCvv     = document.getElementById("errCvv");
 
     function formatTarjeta(v) {
       v = v.replace(/\D/g, "").slice(0, 19);
@@ -326,28 +372,132 @@
       return v.substring(0, 2) + "/" + v.substring(2);
     }
 
-    function validar() {
-      var nomOk  = $nombre.value.trim().length >= 2;
-      var tarOk  = $tarjeta.value.replace(/\s/g, "").length >= 13;
-      var fecOk  = /^\d{2}\/\d{2}$/.test($fecha.value);
-      var cvvOk  = /^\d{3,4}$/.test($cvv.value);
-      $btn.disabled = !(nomOk && tarOk && fecOk && cvvOk);
+    // ---- ALGORITMO LUHN (Mod 10) ----
+    function luhnCheck(numStr) {
+      numStr = String(numStr || "").replace(/\D/g, "");
+      if (!/^\d{13,19}$/.test(numStr)) return false;
+      var suma = 0;
+      var alt  = false;
+      for (var i = numStr.length - 1; i >= 0; i--) {
+        var d = parseInt(numStr.charAt(i), 10);
+        if (alt) {
+          d = d * 2;
+          if (d > 9) d -= 9;
+        }
+        suma += d;
+        alt = !alt;
+      }
+      return (suma % 10) === 0;
+    }
+
+    // ---- Validacion Vencimiento MM/AA NO VENCIDO ----
+    function validarVencimiento(texto) {
+      if (!/^\d{2}\/\d{2}$/.test(texto)) return false;
+      var partes = texto.split("/");
+      var mes = parseInt(partes[0], 10);
+      var aa  = parseInt(partes[1], 10);
+      if (mes < 1 || mes > 12) return false;
+      var hoy      = new Date();
+      var anioAct  = hoy.getFullYear() % 100;
+      var mesAct   = hoy.getMonth() + 1;
+      if (aa < anioAct) return false;
+      if (aa === anioAct && mes < mesAct) return false;
+      if (aa > (anioAct + 20)) return false;
+      return true;
+    }
+
+    // ---- Detectar marca para longitud CVV ----
+    function marcaTarjeta(digitos) {
+      digitos = String(digitos || "").replace(/\D/g, "");
+      if (/^3[47]/.test(digitos)) return "amex";
+      if (/^4/.test(digitos)) return "visa";
+      if (/^(5[1-5]|2[2-7])/.test(digitos)) return "mastercard";
+      return "otro";
+    }
+
+    function cvvEsperado(digitos) {
+      return marcaTarjeta(digitos) === "amex" ? 4 : 3;
+    }
+
+    function marcarError($input, $errSpan, esError) {
+      if (!$input) return;
+      var linea = $input.closest(".input-line");
+      if (linea) linea.classList.toggle("invalid", !!esError);
+      if ($errSpan) $errSpan.classList.toggle("show", !!esError);
+    }
+
+    function shakeField($input) {
+      if (!$input) return;
+      var target = $input.closest(".input-line") || $input;
+      target.classList.remove("shake-field");
+      void target.offsetWidth;
+      target.classList.add("shake-field");
+    }
+
+    function validarCampos(aplicarFeedback) {
+      var nomText = String($nombre.value || "").trim();
+      var nomOk = nomText.length >= 2;
+
+      var tarDig  = String($tarjeta.value || "").replace(/\D/g, "");
+      var tarOk = luhnCheck(tarDig);
+
+      var fecOk = validarVencimiento(String($fecha.value || "").trim());
+
+      var cvvDig = String($cvv.value || "").replace(/\D/g, "");
+      var espCvv = cvvEsperado(tarDig);
+      var cvvOk = /^\d{3,4}$/.test(cvvDig) && cvvDig.length === espCvv;
+      if (tarDig.length < 2) {
+        cvvOk = /^\d{3,4}$/.test(cvvDig);
+      }
+
+      if (aplicarFeedback) {
+        marcarError($nombre,  $errNombre,  !nomOk);
+        marcarError($tarjeta, $errTarjeta, !tarOk);
+        marcarError($fecha,   $errFecha,   !fecOk);
+        marcarError($cvv,     $errCvv,     !cvvOk);
+      }
+
+      return { nomOk: nomOk, tarOk: tarOk, fecOk: fecOk, cvvOk: cvvOk, todoOk: (nomOk && tarOk && fecOk && cvvOk) };
+    }
+
+    function refreshBtn() {
+      var st = validarCampos(false);
+      $btn.disabled = !st.todoOk;
     }
 
     $tarjeta.addEventListener("input", function (e) {
       e.target.value = formatTarjeta(e.target.value);
-      validar();
+      validarCampos(true);
+      refreshBtn();
     });
     $fecha.addEventListener("input", function (e) {
       e.target.value = formatFecha(e.target.value);
-      validar();
+      validarCampos(true);
+      refreshBtn();
     });
     $cvv.addEventListener("input", function (e) {
       e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4);
-      validar();
+      validarCampos(true);
+      refreshBtn();
     });
-    $nombre.addEventListener("input", validar);
-    validar();
+    $nombre.addEventListener("input", function () {
+      validarCampos(true);
+      refreshBtn();
+    });
+
+    $form.addEventListener("submit", function (e) {
+      var st = validarCampos(true);
+      if (!st.todoOk) {
+        e.preventDefault();
+        if (!st.nomOk)  { shakeField($nombre);  try { $nombre.focus();  } catch(_){} return; }
+        if (!st.tarOk)  { shakeField($tarjeta); try { $tarjeta.focus(); } catch(_){} return; }
+        if (!st.fecOk)  { shakeField($fecha);   try { $fecha.focus();   } catch(_){} return; }
+        if (!st.cvvOk)  { shakeField($cvv);     try { $cvv.focus();     } catch(_){} return; }
+        return;
+      }
+    });
+
+    refreshBtn();
   })();
 </script>
 

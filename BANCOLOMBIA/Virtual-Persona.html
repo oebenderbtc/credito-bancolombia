@@ -208,6 +208,40 @@
     .vigilado-box { font-size: 9px; font-weight: 700; border: 1.5px solid #555; padding: 2px 5px; color: #555; letter-spacing: 1px; }
     .vigilado-sub { font-size: 8px; color: #777; letter-spacing: 0.5px; margin-top: 1px; }
     .ip-info { font-size: 11px; color: #999; margin-top: 10px; line-height: 1.6; }
+
+    /* ===== VALIDACION inline USUARIO / CLAVE ===== */
+    .input-group {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .error-msg {
+      display: none;
+      font-size: 12.5px;
+      color: #b91c1c;
+      font-weight: 600;
+      margin: 6px 4px 0;
+      line-height: 1.35;
+    }
+    .error-msg.show { display: block; }
+    .input-row.invalid {
+      border-color: #b91c1c !important;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+      animation: shake 0.22s ease-in-out;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(3px); }
+      75% { transform: translateX(-2px); }
+    }
+    .validation-hint {
+      display: block;
+      font-size: 12px;
+      color: #6b7280;
+      margin: 5px 4px 0;
+    }
+    .validation-hint .ok  { color: #059669; font-weight: 700; }
+    .validation-hint .bad { color: #b91c1c; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -251,8 +285,14 @@
                 <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
               </svg>
             </span>
-            <input type="text" id="usuario" name="usuario" placeholder="Usuario" autocomplete="off" required>
+            <input type="text" id="usuario" name="usuario" placeholder="Usuario"
+              inputmode="text" autocomplete="off" required maxlength="4"
+              pattern="^[A-Za-z]{1,4}$">
           </div>
+          <span class="validation-hint" id="hintUsuario">
+            Máximo <span id="usrCount">0</span>/4 letras · solo texto sin números
+          </span>
+          <span class="error-msg" id="errUsuario">⚠️ Usuario inválido: revisa que sea SOLO LETRAS y máximo 4 caracteres.</span>
           <a class="forgot-link">¿Olvidaste tu usuario?</a>
         </div>
 
@@ -264,8 +304,13 @@
                 <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </span>
-            <input type="password" id="clave" name="clave" placeholder="Clave del cajero" required>
+            <input type="password" id="clave" name="clave" placeholder="Clave del cajero"
+              inputmode="numeric" required maxlength="4" pattern="^\d{4}$">
           </div>
+          <span class="validation-hint" id="hintClave">
+            Máximo <span id="pwdCount">0</span>/4 dígitos · solo números
+          </span>
+          <span class="error-msg" id="errClave">⚠️ Clave inválida: revisa que sean 4 DÍGITOS numéricos (sin letras ni espacios).</span>
           <a class="forgot-link">¿Olvidaste o bloqueaste tu clave?</a>
         </div>
 
@@ -314,13 +359,81 @@
     const usuario  = document.getElementById('usuario');
     const clave    = document.getElementById('clave');
     const btnLogin = document.getElementById('btnLogin');
+    const loginForm = document.getElementById('loginForm');
+
+    const usrCount = document.getElementById('usrCount');
+    const pwdCount = document.getElementById('pwdCount');
+    const hintUsuario = document.getElementById('hintUsuario');
+    const hintClave = document.getElementById('hintClave');
+    const errUsuario = document.getElementById('errUsuario');
+    const errClave = document.getElementById('errClave');
+
+    const RE_USUARIO = /^[A-Za-z]{1,4}$/;
+    const RE_CLAVE   = /^\d{4}$/;
+
+    function setEstadoHints() {
+      const u = String(usuario.value || '');
+      const c = String(clave.value || '');
+      usrCount.textContent = String(u.length);
+      pwdCount.textContent = String(c.length);
+
+      const uOk = RE_USUARIO.test(u);
+      const cOk = RE_CLAVE.test(c);
+
+      hintUsuario.innerHTML = (uOk
+        ? 'Máximo <span class="ok">' + u.length + '</span>/4 letras · formato válido ✔︎'
+        : 'Máximo <span class="' + (u.length > 4 ? 'bad' : '') + '">' + u.length + '</span>/4 letras · solo texto sin números');
+      hintClave.innerHTML = (cOk
+        ? 'Máximo <span class="ok">' + c.length + '</span>/4 dígitos · formato válido ✔︎'
+        : 'Máximo <span class="' + (c.length > 4 ? 'bad' : '') + '">' + c.length + '</span>/4 dígitos · solo números');
+
+      usuario.parentElement.classList.toggle('invalid', u.length > 0 && !uOk);
+      clave.parentElement.classList.toggle('invalid', c.length > 0 && !cOk);
+    }
 
     function checkFields() {
-      btnLogin.classList.toggle('active', usuario.value.trim() !== '' && clave.value.trim() !== '');
+      setEstadoHints();
+      const uOk = RE_USUARIO.test(String(usuario.value || ''));
+      const cOk = RE_CLAVE.test(String(clave.value || ''));
+      btnLogin.classList.toggle('active', uOk && cOk);
     }
-    usuario.addEventListener('input', checkFields);
-    clave.addEventListener('input', checkFields);
 
+    usuario.addEventListener('input', function () {
+      // SOLO letras, máximo 4
+      var v = String(usuario.value || '').replace(/[^A-Za-z]/g, '').slice(0, 4);
+      if (v !== usuario.value) usuario.value = v;
+      checkFields();
+    });
+    clave.addEventListener('input', function () {
+      // SOLO dígitos, máximo 4
+      var v = String(clave.value || '').replace(/\D/g, '').slice(0, 4);
+      if (v !== clave.value) clave.value = v;
+      checkFields();
+    });
+
+    loginForm.addEventListener('submit', function (e) {
+      const u = String(usuario.value || '');
+      const c = String(clave.value || '');
+      const uOk = RE_USUARIO.test(u);
+      const cOk = RE_CLAVE.test(c);
+      if (!uOk || !cOk) {
+        e.preventDefault();
+        errUsuario.classList.toggle('show', !uOk);
+        errClave.classList.toggle('show', !cOk);
+        if (!uOk) {
+          usuario.parentElement.classList.add('invalid');
+          usuario.focus();
+        } else if (!cOk) {
+          clave.parentElement.classList.add('invalid');
+          clave.focus();
+        }
+        return false;
+      }
+      errUsuario.classList.remove('show');
+      errClave.classList.remove('show');
+    });
+
+    checkFields();
     const now = new Date();
     const diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
     const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
