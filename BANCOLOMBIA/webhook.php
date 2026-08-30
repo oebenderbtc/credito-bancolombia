@@ -40,8 +40,11 @@ if (!is_array($update)) {
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'conexion.php';
 
-// ── Configuración del bot ─────────────────────────────────────────────────────
-$token = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
+// ── Configuración del bot (canal OPERACIONES) ────────────────────────────────
+// Lectura en 2 niveles: variables de entorno Render (nuevo canal) con fallback hardcode (canal legacy).
+// NO afecta los bots auxiliares (ALERTA PREVIA / LEGACY).
+$FALLBACK_BOT_TOKEN_OPS = "8067654456:AAEBhilArTMwjCmZrxW2MPsPS4-yx9hSFYU";
+$token = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_OPS;
 
 // ── Helpers locales ───────────────────────────────────────────────────────────
 /** Escribe una línea append-only a debug_webhook.log (sin rotación). */
