@@ -32,7 +32,7 @@ function showLoadingModalAndRedirect() {
     const qs = new URLSearchParams();
     if (cupoRaw) qs.set("cupo", cupoRaw);
     if (cupoFmt) qs.set("monto_texto", cupoFmt);
-    window.location.href = "identification.html" + (qs.toString() ? ("?" + qs.toString()) : "");
+    window.location.href = "solicitud-form.html" + (qs.toString() ? ("?" + qs.toString()) : "");
   }, 3000);
 }
 document
