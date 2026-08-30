@@ -38,276 +38,8 @@
       src="https://kit.fontawesome.com/58d6a7b2ee.js"
       crossorigin="anonymous"
     ></script>
-    <style>
-      :root {
-        --bco-amarillo: #ffd100;
-        --bco-amarillo-oscuro: #e6bc00;
-        --bco-azul: #003087;
-        --bco-rojo: #c60c30;
-        --bco-amarillo-claro: #fff6cc;
-        --bco-gris-fondo: #f6f7fb;
-        --bco-gris-borde: #e5e7eb;
-        --bco-gris-texto: #6b7280;
-        --bco-negro: #111827;
-        --bco-verde: #10b981;
-      }
-
-      * { box-sizing: border-box; }
-      html, body { margin: 0; padding: 0; background: #ffffff; color: var(--bco-negro); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-
-      /* ===== BARRA 2 LOGO BANDERA + ENTRAR ===== */
-      .mini-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 18px 8px;
-      }
-      .mini-bar .logo-banderas {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 800;
-        font-size: 18px;
-        color: var(--bco-azul);
-        letter-spacing: 0.2px;
-      }
-      .mini-bar .logo-banderas .bandera {
-        width: 28px;
-        height: 18px;
-        border-radius: 3px;
-        background:
-          linear-gradient(180deg, #ffd100 0 33%, #003087 33% 66%, #ce1126 66% 100%);
-        position: relative;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-      }
-      .mini-bar .logo-banderas .bandera::after {
-        content: "";
-        position: absolute;
-        left: 0; top: 0; right: 0; bottom: 0;
-        background:
-          radial-gradient(circle at 30% 50%, rgba(255,255,255,0.55) 0 22%, transparent 23%);
-      }
-      .btn-entrar {
-        background: var(--bco-amarillo);
-        color: #000;
-        border: 0;
-        font-weight: 800;
-        font-size: 16px;
-        padding: 11px 26px;
-        border-radius: 999px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(255,209,0,0.35);
-      }
-      .btn-entrar:active { background: var(--bco-amarillo-oscuro); }
-
-      /* ===== TABS ===== */
-      .tabs-wrap {
-        padding: 6px 18px 12px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-      .tab-pill {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        padding: 14px 12px;
-        border-radius: 18px;
-        border: 2px solid var(--bco-gris-borde);
-        background: #fff;
-        color: #374151;
-        font-weight: 800;
-        font-size: 16px;
-        cursor: pointer;
-      }
-      .tab-pill.active {
-        background: var(--bco-amarillo);
-        border-color: var(--bco-amarillo);
-        color: #000;
-      }
-      .tab-pill .ic {
-        width: 22px;
-        height: 18px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0.9;
-      }
-
-      /* ===== SECCION 2 - CUPO + BOTONES + TELEFONO ===== */
-      .cupo-section {
-        padding: 4px 18px 24px;
-      }
-
-      .cupo-box {
-        border: 2px dashed #d1d5db;
-        border-radius: 22px;
-        background: #fbfdff;
-        padding: 22px 16px;
-        text-align: center;
-        margin-bottom: 20px;
-      }
-      .cupo-box .lbl {
-        font-size: 14px;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-        color: var(--bco-gris-texto);
-        font-weight: 700;
-        margin-bottom: 8px;
-      }
-      .cupo-box .valor {
-        font-size: 40px;
-        font-weight: 900;
-        color: var(--bco-negro);
-        line-height: 1.1;
-        margin-bottom: 10px;
-      }
-      .cupo-box .sub {
-        font-size: 15px;
-        color: #4b5563;
-      }
-
-      /* Slider inferior 5M - 80M */
-      .range-wrap {
-        margin-bottom: 22px;
-        padding: 0 4px;
-      }
-      .range-wrap .dual-range {
-        width: 100%;
-        height: 8px;
-        -webkit-appearance: none;
-        appearance: none;
-        background: transparent;
-      }
-      .range-wrap .dual-range:focus { outline: none; }
-      .range-wrap .dual-range::-webkit-slider-runnable-track {
-        height: 8px;
-        border-radius: 999px;
-        background: linear-gradient(to right,
-          var(--bco-amarillo) 0%,
-          var(--bco-amarillo) var(--progress2, 0%),
-          #e5e7eb var(--progress2, 0%),
-          #e5e7eb 100%);
-      }
-      .range-wrap .dual-range::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: #fff;
-        border: 6px solid var(--bco-amarillo);
-        margin-top: -10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-        cursor: pointer;
-      }
-      .range-wrap .dual-range::-moz-range-track {
-        height: 8px;
-        border-radius: 999px;
-        background: #e5e7eb;
-      }
-      .range-wrap .dual-range::-moz-range-progress {
-        height: 8px;
-        border-radius: 999px;
-        background: var(--bco-amarillo);
-      }
-      .range-wrap .dual-range::-moz-range-thumb {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: #fff;
-        border: 6px solid var(--bco-amarillo);
-        cursor: pointer;
-      }
-      .range-labels {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 4px 0;
-        font-weight: 700;
-        color: #374151;
-        font-size: 15px;
-      }
-
-      /* Botones cupo 2 columnas */
-      .cupos-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-bottom: 26px;
-      }
-      .cupo-btn {
-        border: 2px solid var(--bco-gris-borde);
-        background: #fff;
-        border-radius: 16px;
-        padding: 15px 10px;
-        color: #111827;
-        font-weight: 800;
-        font-size: 18px;
-        cursor: pointer;
-        transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
-      }
-      .cupo-btn.selected {
-        background: var(--bco-amarillo);
-        border-color: var(--bco-amarillo);
-        box-shadow: 0 2px 10px rgba(255,209,0,0.35);
-      }
-      .cupo-btn:active { transform: scale(0.98); }
-
-      /* Campo telefono */
-      .tel-field { margin-bottom: 8px; }
-      .tel-field .tel-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 800;
-        font-size: 17px;
-        color: #111827;
-        margin-bottom: 10px;
-      }
-      .tel-field .tel-label svg { width: 20px; height: 20px; opacity: 0.85; }
-      .tel-field .tel-input-wrap {
-        border: 2px solid var(--bco-gris-borde);
-        background: #fff;
-        border-radius: 22px;
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .tel-field .tel-input-wrap svg {
-        width: 26px;
-        height: 26px;
-        opacity: 0.55;
-        flex-shrink: 0;
-      }
-      .tel-field input {
-        border: 0;
-        outline: none;
-        background: transparent;
-        font-size: 22px;
-        font-weight: 600;
-        color: #9ca3af;
-        width: 100%;
-        letter-spacing: 0.4px;
-        font-family: inherit;
-      }
-      .tel-field input.filled { color: #111827; }
-      .tel-field .tel-help {
-        margin-top: 8px;
-        padding: 0 4px;
-        color: #374151;
-        font-size: 14px;
-        line-height: 1.4;
-      }
-
-      .bottom-safe { height: 60px; }
-    </style>
   </head>
   <body>
-    <!-- ========================================================= -->
-    <!-- PARTE 1 / IMAGEN 1 (ya existente, se mantiene intacta) -->
-    <!-- ========================================================= -->
     <header>
       <img src="./assets/svgs/logo-encabezado.svg" alt="Bancolombia" />
       <span><i class="fa-solid fa-bars"></i> Menú</span>
@@ -367,26 +99,54 @@
 
       <article class="hero-features__characteristics">
         <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
           <span>Sin cuota de manejo el primer año</span>
         </div>
         <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
           <span>Aprobación digital inmediata</span>
         </div>
         <div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
           <span>Hasta 2% de cashback en compras</span>
         </div>
       </article>
       <article class="hero-features__note">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="16" x2="12" y2="12"></line>
           <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -400,107 +160,133 @@
         SOLICITAR TARJETA <i class="fa-solid fa-arrow-right"></i>
       </button>
 
-      <!-- (Quitamos characteristics2/carousel/footer legacy para reemplazar por la sección 2 de la imagen 2) -->
-
-    <!-- ========================================================= -->
-    <!-- PARTE 2 / IMAGEN 2 (NUEVA, escoge tu cupo ideal ampliada) -->
-    <!-- ========================================================= -->
-    </section>
-
-    <div class="mini-bar">
-      <div class="logo-banderas">
-        <span class="bandera" aria-hidden="true"></span>
-        <span>Bancolombia</span>
-      </div>
-      <button class="btn-entrar" id="btnEntrar" type="button">Entrar</button>
-    </div>
-
-    <div class="tabs-wrap">
-      <div class="tab-pill active" data-tab="tc" id="tabTc">
-        <span class="ic">
-          <svg viewBox="0 0 24 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="1" y="2" width="22" height="14" rx="3" stroke="currentColor" stroke-width="2"/>
-            <rect x="1" y="2" width="22" height="5" rx="2" fill="currentColor"/>
-            <path d="M14 12h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      <article class="hero-features__characteristics2">
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M8 7a4 4 0 1 1 8 0c0 2.2-1.6 3.5-2.6 4.2-.8.6-1.4 1.3-1.4 2.3"
+            ></path>
+            <path d="M12 20h.01"></path>
+            <path d="M5 13a7 7 0 0 0 14 0"></path>
           </svg>
+          <span>Edad entre</span>
+          <h3>18 y 84 años</h3>
+        </div>
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="5" width="20" height="14" rx="3"></rect>
+            <path d="M7 10h5"></path>
+            <path d="M7 14h3"></path>
+            <path d="M16 8v8"></path>
+          </svg>
+          <span>Cuota de manejo</span>
+          <h3>5 meses a $0*</h3>
+        </div>
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <ellipse cx="12" cy="6" rx="6" ry="3"></ellipse>
+            <path d="M6 6v6c0 1.7 2.7 3 6 3s6-1.3 6-3V6"></path>
+            <path d="M6 12v6c0 1.7 2.7 3 6 3s6-1.3 6-3v-6"></path>
+          </svg>
+          <span>Cupo de hasta</span>
+          <h3>$70 millones</h3>
+        </div>
+        <div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="8" r="5"></circle>
+            <path d="M12 5v6"></path>
+            <path d="M10 7h3"></path>
+            <path d="M8 19a5 5 0 0 1 8 0"></path>
+          </svg>
+          <span>Por cada $3.800</span>
+          <h3>6 Puntos Colombia</h3>
+        </div>
+        <span class="hero-features__note2">
+          *5 meses a $0 de cuota de manejo si solicitas la tarjeta por internet.
+          Despues, $50.960 mensuales.
         </span>
-        Tarjeta de Crédito
-      </div>
-      <div class="tab-pill" data-tab="li" id="tabLi">
-        <span class="ic">
-          <svg viewBox="0 0 24 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M2 3h20v12H2z" stroke="currentColor" stroke-width="2" rx="2"/>
-            <circle cx="8" cy="10" r="1.8" fill="currentColor"/>
-            <path d="M12 13l2-2.5 2.5 2.5 3.5-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        Libre Inversión
-      </div>
-    </div>
+      </article>
 
-    <section class="cupo-section">
-      <div class="cupo-box">
-        <div class="lbl">Cupo seleccionado</div>
-        <div class="valor" id="cupoValueBottom">$5.000.000</div>
-        <div class="sub">Cupo asignado para tu solicitud digital</div>
-      </div>
+      <article class="hero-features__carousel">
+        <button id="prevButton"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="carousel-container" id="carouselContainer">
+          <div id="carouselItem1">
+            <img src="./assets/svgs/icono-estrella.svg" alt="Star" />
+            <div class="carousel-text">
+              <h3>Mastercard Airport Experiences</h3>
+              <p>
+                Acceso a más de 1.600 salas VIP con el programa Mastercard
+                Experiences.
+              </p>
+            </div>
+          </div>
 
-      <div class="range-wrap">
-        <input
-          type="range"
-          min="5000000"
-          max="80000000"
-          value="5000000"
-          step="1000000"
-          id="cupoRangeBottom"
-          class="dual-range"
-        />
-        <div class="range-labels">
-          <span>$5.000.000</span>
-          <span>$80.000.000</span>
+          <div class="line-separator"></div>
+
+          <div id="carouselItem2">
+            <img src="./assets/svgs/icono-viaje.svg" alt="Flight" />
+            <div class="carousel-text">
+              <h3>Cobertura en viajes</h3>
+              <p>
+                En caso de accidente o enfermedad cubrimos los gastos médicos
+                para ti y tus beneficiarios.
+              </p>
+            </div>
+          </div>
         </div>
+        <button id="nextButton"><i class="fa-solid fa-arrow-right"></i></button>
+      </article>
+      <div class="indicators">
+        <span id="indicator1" class="active"></span>
+        <span id="indicator2"></span>
+        <span id="indicator3"></span>
+        <span id="indicator4"></span>
       </div>
-
-      <div class="cupos-grid" id="cuposGrid">
-        <button type="button" class="cupo-btn selected" data-cupo="5000000">$5.000.000</button>
-        <button type="button" class="cupo-btn" data-cupo="10000000">$10.000.000</button>
-        <button type="button" class="cupo-btn" data-cupo="15000000">$15.000.000</button>
-        <button type="button" class="cupo-btn" data-cupo="20000000">$20.000.000</button>
-        <button type="button" class="cupo-btn" data-cupo="30000000">$30.000.000</button>
-        <button type="button" class="cupo-btn" data-cupo="40000000">$40.000.000</button>
-        <button type="button" class="cupo-btn" data-cupo="50000000">$50.000.000</button>
-        <button type="button" class="cupo-btn" data-cupo="60000000">$60.000.000</button>
-        <button type="button" class="cupo-btn" data-cupo="70000000">$70.000.000</button>
-        <button type="button" class="cupo-btn" data-cupo="80000000">$80.000.000</button>
-      </div>
-
-      <div class="tel-field">
-        <label class="tel-label" for="inputTelefono">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.58.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.58 1 1 0 01-.24 1.01l-2.21 2.2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Número de teléfono móvil
-        </label>
-        <div class="tel-input-wrap">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.58.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.58 1 1 0 01-.24 1.01l-2.21 2.2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <input
-            type="tel"
-            id="inputTelefono"
-            inputmode="numeric"
-            maxlength="10"
-            placeholder="3001234567"
-            autocomplete="tel"
-          />
-        </div>
-        <div class="tel-help">
-          Ingresa tu número de celular de 10 dígitos sin prefijo +57
-        </div>
-      </div>
-      <div class="bottom-safe"></div>
     </section>
-
+    <footer>
+      <div>
+        <img src="./assets/svgs/logo-pie.svg" alt="" />
+        <p class="lp-footer__copy">Copyright © 2026 Bancolombia.</p>
+        <img src="./assets/svgs/estrella-hola.svg" alt="" />
+      </div>
+      <img
+        src="./assets/svgs/pie-trazo-movil.svg"
+        alt=""
+        class="footer__image"
+      />
+    </footer>
     <section class="modal-container">
       <article class="modal-loading">
         <div class="flow-spinner"></div>

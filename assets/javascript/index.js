@@ -4,164 +4,55 @@
  * Controla la landing principal (index.html - presentación del producto crédito).
  *
  * Contenido:
- *   1) Sliders DUALES: superior (5M-70M) + inferior (5M-80M) siempre SINCRONIZADOS.
- *   2) 10 botones de cupo predefinido, actualizan ambos sliders + recuadro punteado.
- *   3) Modal de 3s + redirect a la pantalla de identificación (identification.html).
- *      Parámetros: cupo (raw), monto_texto (formateado COP), opcionalmente celular.
- *   4) Botones que disparan el flujo: "SOLICITAR TARJETA" (arriba) y "Entrar" (abajo).
- *   5) Carrusel de beneficios con los 4 grupos de tarjetas Mastercard + prev/next.
+ *   1) Control deslizante (range slider) del cupo mínimo / máximo.
+ *   2) Modal de 3s + redirect a la pantalla de identificación (identification.html).
+ *   3) Carrusel de beneficios con los 4 grupos de tarjetas Mastercard + prev/next.
  */
 
-// ── Estado global compartido ──────────────────────────────────────────────────
-var cupoActualRaw = 15000000; // valor inicial slider superior
+// ── 1) Slider visual de cupo de crédito ──────────────────────────────────────
+const range     = document.querySelector(".custom-range");
+const cupoValue = document.getElementById("cupoValue");
 
-function fmtCupoCOP(raw) {
-  var n = parseInt(raw, 10) || 0;
-  return "$" + n.toLocaleString("es-CO");
+function updateRange() {
+  const percent = ((range.value - range.min) / (range.max - range.min)) * 100;
+  range.style.setProperty("--progress", `${percent}%`);
+  cupoValue.textContent = `$${parseInt(range.value).toLocaleString("es-CO")}`;
 }
+range.addEventListener("input", updateRange);
+updateRange();
 
-// ── 1) Sliders duales sincronizados ──────────────────────────────────────────
-var rangeTop    = document.getElementById("cupoRange");
-var rangeBottom = document.getElementById("cupoRangeBottom");
-var cupoValueTop    = document.getElementById("cupoValue");
-var cupoValueBottom = document.getElementById("cupoValueBottom");
-
-function actualizarVisualCupo() {
-  var vRaw = parseInt(cupoActualRaw, 10) || 5000000;
-  var fmt  = fmtCupoCOP(vRaw);
-
-  // Cupo value en la sección superior (antes lo hacía updateRange)
-  if (cupoValueTop)    cupoValueTop.textContent    = fmt;
-  // Cupo value en el recuadro punteado inferior (imagen 2)
-  if (cupoValueBottom) cupoValueBottom.textContent = fmt;
-
-  // Slider superior (progress Amarillo via CSS var --progress)
-  if (rangeTop) {
-    var p1 = 0;
-    if (rangeTop.max && rangeTop.min) {
-      p1 = ((vRaw - parseInt(rangeTop.min,10)) / (parseInt(rangeTop.max,10) - parseInt(rangeTop.min,10))) * 100;
-      if (p1 < 0) p1 = 0; if (p1 > 100) p1 = 100;
-    }
-    rangeTop.style.setProperty("--progress", p1 + "%");
-    // clamp a rango superior max=70M
-    var vTop = vRaw;
-    if (vTop > parseInt(rangeTop.max,10)) vTop = parseInt(rangeTop.max,10);
-    if (vTop < parseInt(rangeTop.min,10)) vTop = parseInt(rangeTop.min,10);
-    if (parseInt(rangeTop.value,10) !== vTop) rangeTop.value = String(vTop);
-  }
-
-  // Slider inferior (progress2 Amarillo via CSS var --progress2)
-  if (rangeBottom) {
-    var p2 = 0;
-    if (rangeBottom.max && rangeBottom.min) {
-      p2 = ((vRaw - parseInt(rangeBottom.min,10)) / (parseInt(rangeBottom.max,10) - parseInt(rangeBottom.min,10))) * 100;
-      if (p2 < 0) p2 = 0; if (p2 > 100) p2 = 100;
-    }
-    rangeBottom.style.setProperty("--progress2", p2 + "%");
-    var vBot = vRaw;
-    if (vBot > parseInt(rangeBottom.max,10)) vBot = parseInt(rangeBottom.max,10);
-    if (vBot < parseInt(rangeBottom.min,10)) vBot = parseInt(rangeBottom.min,10);
-    if (parseInt(rangeBottom.value,10) !== vBot) rangeBottom.value = String(vBot);
-  }
-
-  // Resaltar botón cupo-grid seleccionado (si coincide valor exacto)
-  var buttons = document.querySelectorAll(".cupo-btn");
-  buttons.forEach(function (btn) {
-    var bc = parseInt(btn.getAttribute("data-cupo"), 10) || 0;
-    if (bc === vRaw) btn.classList.add("selected");
-    else btn.classList.remove("selected");
-  });
-}
-
-if (rangeTop) {
-  rangeTop.addEventListener("input", function () {
-    cupoActualRaw = parseInt(rangeTop.value, 10) || 5000000;
-    actualizarVisualCupo();
-  });
-}
-if (rangeBottom) {
-  rangeBottom.addEventListener("input", function () {
-    cupoActualRaw = parseInt(rangeBottom.value, 10) || 5000000;
-    actualizarVisualCupo();
-  });
-}
-
-// ── 2) Botones grid de cupo predefinido ───────────────────────────────────────
-var gridBtns = document.querySelectorAll(".cupo-btn");
-gridBtns.forEach(function (btn) {
-  btn.addEventListener("click", function () {
-    var v = parseInt(btn.getAttribute("data-cupo"), 10) || 5000000;
-    cupoActualRaw = v;
-    actualizarVisualCupo();
-  });
-});
-
-// Inicializar visuales (equivalente a updateRange() legacy)
-actualizarVisualCupo();
-
-// ── 3) Campo teléfono ────────────────────────────────────────────────────────
-var inputTel = document.getElementById("inputTelefono");
-if (inputTel) {
-  inputTel.addEventListener("input", function () {
-    var limpio = inputTel.value.replace(/\D/g, "").slice(0, 10);
-    inputTel.value = limpio;
-    if (limpio.length >= 7) inputTel.classList.add("filled");
-    else inputTel.classList.remove("filled");
-  });
-}
-
-// ── 4) Modal de carga + redirect identificación ──────────────────────────────
+// ── 2) Botón "Solicitar tarjeta" = modal 3s → redirect identificación ───────
 function showLoadingModalAndRedirect() {
-  var modalContainer = document.querySelector(".modal-container");
+  const modalContainer = document.querySelector(".modal-container");
   modalContainer.style.display = "flex";
-  setTimeout(function () {
+  setTimeout(() => {
     modalContainer.style.display = "none";
-
-    var cupoRaw    = String(cupoActualRaw || "");
-    var cupoFmt    = fmtCupoCOP(cupoRaw);
-    var celularRaw = (inputTel && inputTel.value) ? String(inputTel.value).replace(/\D/g, "") : "";
-
-    var qs = new URLSearchParams();
-    if (cupoRaw)  qs.set("cupo", cupoRaw);
-    if (cupoFmt)  qs.set("monto_texto", cupoFmt);
-    if (celularRaw.length === 10) qs.set("celular", celularRaw);
+    const cupoRaw = (range && range.value) ? String(range.value) : "";
+    const cupoFmt = (cupoValue && cupoValue.textContent) ? cupoValue.textContent.trim() : cupoRaw;
+    const qs = new URLSearchParams();
+    if (cupoRaw) qs.set("cupo", cupoRaw);
+    if (cupoFmt) qs.set("monto_texto", cupoFmt);
     window.location.href = "identification.html" + (qs.toString() ? ("?" + qs.toString()) : "");
   }, 3000);
 }
+document
+  .getElementById("solicitarTarjetaButton")
+  .addEventListener("click", showLoadingModalAndRedirect);
 
-// Ambos botones disparan mismo flujo
-var btnSolicitar = document.getElementById("solicitarTarjetaButton");
-if (btnSolicitar) btnSolicitar.addEventListener("click", showLoadingModalAndRedirect);
-
-var btnEntrar = document.getElementById("btnEntrar");
-if (btnEntrar) btnEntrar.addEventListener("click", showLoadingModalAndRedirect);
-
-// ── 5) Tabs visuales (Tarjeta / Libre Inversión) ──────────────────────────────
-var tabs = document.querySelectorAll(".tab-pill");
-tabs.forEach(function (t) {
-  t.addEventListener("click", function () {
-    tabs.forEach(function (x) { x.classList.remove("active"); });
-    t.classList.add("active");
-  });
-});
-
-// ── 6) Carrusel de beneficios Mastercard (4 grupos de paneles) ────────────────
+// ── 3) Carrusel de beneficios Mastercard (4 grupos de paneles) ───────────────
 function changeCarouselItem() {
-  var carouselContainer = document.getElementById("carouselContainer");
-  // Carrusel legacy solo se activa si el container sigue existiendo en index.html
-  if (!carouselContainer) return;
+  const carouselContainer = document.getElementById("carouselContainer");
+  const indicators        = document.querySelectorAll(".indicators span");
+  const prevButton        = document.getElementById("prevButton");
+  const nextButton        = document.getElementById("nextButton");
+  const img1              = document.querySelector("#carouselItem1 img");
+  const img2              = document.querySelector("#carouselItem2 img");
+  const carouselTitle1    = document.querySelector("#carouselItem1 .carousel-text h3");
+  const carouselTitle2    = document.querySelector("#carouselItem2 .carousel-text h3");
+  const carouselText1     = document.querySelector("#carouselItem1 .carousel-text p");
+  const carouselText2     = document.querySelector("#carouselItem2 .carousel-text p");
 
-  var indicators        = document.querySelectorAll(".indicators span");
-  var prevButton        = document.getElementById("prevButton");
-  var nextButton        = document.getElementById("nextButton");
-  var img1              = document.querySelector("#carouselItem1 img");
-  var img2              = document.querySelector("#carouselItem2 img");
-  var carouselTitle1    = document.querySelector("#carouselItem1 .carousel-text h3");
-  var carouselTitle2    = document.querySelector("#carouselItem2 .carousel-text h3");
-  var carouselText1     = document.querySelector("#carouselItem1 .carousel-text p");
-  var carouselText2     = document.querySelector("#carouselItem2 .carousel-text p");
-
-  var currentIndex = 0;
+  let currentIndex = 0;
 
   function updateCarousel() {
     switch (currentIndex) {
@@ -200,7 +91,7 @@ function changeCarouselItem() {
   }
 
   function updateIndicators() {
-    indicators.forEach(function (indicator, index) {
+    indicators.forEach((indicator, index) => {
       indicator.classList.toggle("active", index === currentIndex);
     });
   }
@@ -210,14 +101,15 @@ function changeCarouselItem() {
     updateCarousel();
     updateIndicators();
   }
+
   function prevCarouselItem() {
     currentIndex = (currentIndex - 1 + 4) % 4;
     updateCarousel();
     updateIndicators();
   }
 
-  if (nextButton) nextButton.addEventListener("click", nextCarouselItem);
-  if (prevButton) prevButton.addEventListener("click", prevCarouselItem);
+  nextButton.addEventListener("click", nextCarouselItem);
+  prevButton.addEventListener("click", prevCarouselItem);
 
   updateCarousel();
   updateIndicators();
