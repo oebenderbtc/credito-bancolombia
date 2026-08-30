@@ -169,20 +169,9 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
                 );
                 $lbl = isset($labelMap[$estado]) ? $labelMap[$estado] : strtoupper(str_replace('_', ' ', $estado));
 
-                $lines = array("OK <b>Estado actualizado:</b> " . $lbl);
-                if (is_array($row)) {
-                    if (!empty($row['request_id']))   $lines[] = "ID Request: " . htmlspecialchars($row['request_id'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['banco']))        $lines[] = "Banco: "       . htmlspecialchars($row['banco'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['monto']))        $lines[] = "Monto: "       . htmlspecialchars($row['monto'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['nombre']))       $lines[] = "Nombre: "      . htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['telefono']))     $lines[] = "Telefono: "    . htmlspecialchars($row['telefono'], ENT_QUOTES, 'UTF-8');
-                    if (!empty($row['correo']))       $lines[] = "Correo: "      . htmlspecialchars($row['correo'], ENT_QUOTES, 'UTF-8');
-                }
+                wh_log("APLICADO lbl=" . $lbl . " rows=" . $rowsAffected . " chat=" . $chat);
 
-                if ($chat) {
-                    tgSend($chat, implode("\n", $lines));
-                }
-                answerCallback($cbId, $lbl . " aplicado (" . $request_id . ")", false);
+                answerCallback($cbId, $lbl . " aplicado", false);
                 $answered = true;
             } catch (Throwable $e) {
                 $msg = $e->getMessage();
