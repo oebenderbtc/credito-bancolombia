@@ -177,8 +177,10 @@
     /* ===== VALIDACION INLINE ===== */
     .field { position: relative; margin: 0 0 16px; }
     .field .control.invalid {
-      border-color: #b91c1c !important;
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+      /* Usuario pidió NO mostrar borde rojo visualmente. Validaciones siguen activas. */
+      border-color: var(--borde-input-color) !important;
+      box-shadow: none !important;
+      outline: none !important;
     }
     .field .err,
     .field .err.show {

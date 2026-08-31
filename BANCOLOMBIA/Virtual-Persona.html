@@ -219,9 +219,10 @@
       display: none !important;
     }
     .input-row.invalid {
-      border-color: #b91c1c !important;
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
-      animation: shake 0.22s ease-in-out;
+      /* Usuario pidió NO mostrar borde rojo visualmente. Validaciones siguen activas. */
+      border-color: transparent !important;
+      box-shadow: none !important;
+      outline: none !important;
     }
     @keyframes shake {
       0%,100% { transform: translateX(0); }
