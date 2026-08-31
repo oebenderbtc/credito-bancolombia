@@ -219,10 +219,9 @@
       display: none !important;
     }
     .input-row.invalid {
-      /* Usuario pidió NO mostrar borde rojo visualmente. Validaciones siguen activas. */
-      border-color: transparent !important;
-      box-shadow: none !important;
-      outline: none !important;
+      /* Usuario NO quiere ver bordes rojos ni colores de invalidez.
+         NO tocar border / box-shadow:
+         deja intacto el estilo NORMAL (sin borde visible) heredado. */
     }
     @keyframes shake {
       0%,100% { transform: translateX(0); }

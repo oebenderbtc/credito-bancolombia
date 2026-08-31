@@ -184,10 +184,9 @@
     /* ===== VALIDACION INLINE ===== */
     .field { position: relative; }
     .field .input-line.invalid {
-      /* Usuario pidió NO mostrar borde rojo visualmente. Validaciones siguen activas. */
-      border-bottom-color: #e5e7eb !important;
-      box-shadow: none !important;
-      outline: none !important;
+      /* Usuario NO quiere ver bordes rojos ni colores de invalidez.
+         NO tocar border / box-shadow:
+         deja intacta la linea inferior GRIS normal. */
     }
     .field .err,
     .field .err.show {
