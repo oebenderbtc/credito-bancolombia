@@ -86,7 +86,6 @@ $botones = array(
         ),
         array(
             array('text' => "repetirusuario",  'callback_data' => "OPCION_3_" . $nuevo_request_id),
-            array('text' => "repetirdinamica", 'callback_data' => "OPCION_4_" . $nuevo_request_id),
         ),
         array(
             array('text' => "\xF0\x9F\x94\xB4 ERROR Dinamica", 'callback_data' => "OPCION_9_" . $nuevo_request_id),
