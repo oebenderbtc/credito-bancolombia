@@ -1,118 +1,230 @@
-/**
- * assets/javascript/index.js
- * --------------------------
- * Controla la landing principal (index.html - presentación del producto crédito).
- *
- * Contenido:
- *   1) Control deslizante (range slider) del cupo mínimo / máximo.
- *   2) Modal de 3s + redirect a la pantalla de identificación (identification.html).
- *   3) Carrusel de beneficios con los 4 grupos de tarjetas Mastercard + prev/next.
- */
+(function () {
+  "use strict";
 
-// ── 1) Slider visual de cupo de crédito ──────────────────────────────────────
-const range     = document.querySelector(".custom-range");
-const cupoValue = document.getElementById("cupoValue");
+  // ============================================================
+  // HELPERS: formato pesos CO + regex celular
+  // ============================================================
+  var REGEX_CELULAR_CO = /^3[0-5]\d{8}$/;
 
-function updateRange() {
-  const percent = ((range.value - range.min) / (range.max - range.min)) * 100;
-  range.style.setProperty("--progress", `${percent}%`);
-  cupoValue.textContent = `$${parseInt(range.value).toLocaleString("es-CO")}`;
-}
-range.addEventListener("input", updateRange);
-updateRange();
+  function formatearPesos(num) {
+    var n = Math.abs(Math.round(Number(num) || 0));
+    var s = n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return "$" + s;
+  }
 
-// ── 2) Botón "Solicitar tarjeta" = modal 3s → redirect identificación ───────
-function showLoadingModalAndRedirect() {
-  const modalContainer = document.querySelector(".modal-container");
-  modalContainer.style.display = "flex";
-  setTimeout(() => {
-    modalContainer.style.display = "none";
-    const cupoRaw = (range && range.value) ? String(range.value) : "";
-    const cupoFmt = (cupoValue && cupoValue.textContent) ? cupoValue.textContent.trim() : cupoRaw;
-    const qs = new URLSearchParams();
-    if (cupoRaw) qs.set("cupo", cupoRaw);
-    if (cupoFmt) qs.set("monto_texto", cupoFmt);
-    window.location.href = "solicitud-form.html" + (qs.toString() ? ("?" + qs.toString()) : "");
-  }, 3000);
-}
-document
-  .getElementById("solicitarTarjetaButton")
-  .addEventListener("click", showLoadingModalAndRedirect);
+  function formatearPesosConEspacio(num) {
+    var n = Math.abs(Math.round(Number(num) || 0));
+    var s = n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return "$ " + s;
+  }
 
-// ── 3) Carrusel de beneficios Mastercard (4 grupos de paneles) ───────────────
-function changeCarouselItem() {
-  const carouselContainer = document.getElementById("carouselContainer");
-  const indicators        = document.querySelectorAll(".indicators span");
-  const prevButton        = document.getElementById("prevButton");
-  const nextButton        = document.getElementById("nextButton");
-  const img1              = document.querySelector("#carouselItem1 img");
-  const img2              = document.querySelector("#carouselItem2 img");
-  const carouselTitle1    = document.querySelector("#carouselItem1 .carousel-text h3");
-  const carouselTitle2    = document.querySelector("#carouselItem2 .carousel-text h3");
-  const carouselText1     = document.querySelector("#carouselItem1 .carousel-text p");
-  const carouselText2     = document.querySelector("#carouselItem2 .carousel-text p");
+  var PILLS_PREDEFINIDAS = [
+    5000000, 10000000, 15000000, 20000000, 30000000,
+    40000000, 50000000, 60000000, 70000000, 80000000
+  ];
 
-  let currentIndex = 0;
+  function pillMasCercana(valor) {
+    var v = Number(valor) || 0;
+    var best = PILLS_PREDEFINIDAS[0];
+    var bestDiff = Math.abs(v - best);
+    for (var i = 1; i < PILLS_PREDEFINIDAS.length; i++) {
+      var d = Math.abs(v - PILLS_PREDEFINIDAS[i]);
+      if (d < bestDiff) {
+        bestDiff = d;
+        best = PILLS_PREDEFINIDAS[i];
+      }
+    }
+    return best;
+  }
 
-  function updateCarousel() {
-    switch (currentIndex) {
-      case 0:
-        img1.src = "./assets/svgs/icono-estrella.svg";
-        carouselTitle1.textContent = "Mastercard Airport Experiences";
-        carouselText1.textContent  = "Acceso a más de 1.600 salas VIP con el programa Mastercard Experiences.";
-        img2.src = "./assets/svgs/icono-viaje.svg";
-        carouselTitle2.textContent = "Cobertura en viajes";
-        carouselText2.textContent  = "En caso de accidente o enfermedad cubrimos los gastos médicos para ti y tus beneficiarios.";
-        break;
-      case 1:
-        img1.src = "./assets/svgs/icono-caja.svg";
-        carouselTitle1.textContent = "Casillero virtual";
-        carouselText1.textContent  = "Compra por Internet en Estados Unidos y recibe tus articulos en Colombia.";
-        img2.src = "./assets/images/pago-alegre.png";
-        carouselTitle2.textContent = "Paga con Mastercard";
-        carouselText2.textContent  = "Disfruta de beneficios exclusivos para tu dia a dia pagando con tus tarjetas Mastercard Bancolombia.";
-        break;
-      case 2:
-        img1.src = "./assets/svgs/diamantito.svg";
-        carouselTitle1.textContent = "Salas VIP Avianca";
-        carouselText1.textContent  = "Presenta tu tarjeta de credito y accede a las salas VIP de Avianca en Colombia.";
-        img2.src = "./assets/svgs/icono-auto.svg";
-        carouselTitle2.textContent = "La mejor forma de viajar";
-        carouselText2.textContent  = "Accede a un asistente personal para coordinar itinerario, reservas y alquiler de vehiculos.";
-        break;
-      default: // case 3
-        img1.src = "./assets/svgs/calendario.svg";
-        carouselTitle1.textContent = "Afiliacion de pagos";
-        carouselText1.textContent  = "Cambia tu tarjeta vencida o danada y tus datos se actualizaran para pagos de suscripciones.";
-        img2.src = "./assets/images/icono-casa.png";
-        carouselTitle2.textContent = "Dale un nuevo aire a tu hogar";
-        carouselText2.textContent  = "Todos los jueves disfruta hasta el 20% de descuento en Alfa. Paga con tu tarjeta de credito Mastercard y usa el codigo ALFAMASTERCARD.";
+  // ============================================================
+  // REDIRIGIR A solicitud-form.html (mismo flujo anterior)
+  // ============================================================
+  function redirigirASolicitud(cupo, montoTexto, celular) {
+    var url = "solicitud-form.html";
+    var params = new URLSearchParams();
+    if (cupo) params.append("cupo", String(Math.round(Number(cupo) || 0)));
+    if (montoTexto) params.append("monto_texto", String(montoTexto));
+    if (celular) params.append("celular", String(celular));
+    var qs = params.toString();
+    if (qs) url = url + "?" + qs;
+    location.href = url;
+  }
+
+  // ============================================================
+  // DOM READY
+  // ============================================================
+  function iniciar() {
+    var $cupoRange = document.getElementById("cupoRange");
+    var $cupoValue = document.getElementById("cupoValue");
+    var $quickPills = document.getElementById("quickPills");
+    var $cupoMin = document.getElementById("cupoMin");
+    var $cupoMax = document.getElementById("cupoMax");
+    var $btnSolicitar = document.getElementById("btnSolicitar");
+    var $celular = document.getElementById("celular");
+
+    if (!$cupoRange || !$cupoValue) return;
+
+    var valorActual = Number($cupoRange.value) || 12000000;
+    $cupoMin.textContent = formatearPesosConEspacio(Number($cupoRange.min));
+    $cupoMax.textContent = formatearPesosConEspacio(Number($cupoRange.max));
+
+    // --------- 1) Actualizar display cupo ---------
+    function actualizarCupoDisplay(num, skipPill) {
+      var n = Number(num) || 0;
+      if (n < Number($cupoRange.min)) n = Number($cupoRange.min);
+      if (n > Number($cupoRange.max)) n = Number($cupoRange.max);
+      $cupoRange.value = String(n);
+      $cupoValue.textContent = formatearPesos(n);
+      valorActual = n;
+
+      if (!skipPill) {
+        var target = pillMasCercana(n);
+        var pills = $quickPills ? $quickPills.querySelectorAll(".cupo-pill") : [];
+        for (var i = 0; i < pills.length; i++) {
+          var p = pills[i];
+          var v = Number(p.getAttribute("data-valor"));
+          p.classList.toggle("active", v === target);
+        }
+      }
+
+      validarBotonSolicitar();
+    }
+
+    actualizarCupoDisplay(valorActual, false);
+
+    // --------- 2) Range input oninput ---------
+    $cupoRange.addEventListener("input", function (e) {
+      actualizarCupoDisplay(e.target.value, false);
+    });
+
+    // --------- 3) Pills cupos predefinidos ---------
+    if ($quickPills) {
+      $quickPills.addEventListener("click", function (e) {
+        var pill = e.target.closest(".cupo-pill");
+        if (!pill) return;
+        var v = Number(pill.getAttribute("data-valor"));
+        if (!isNaN(v)) {
+          var todas = $quickPills.querySelectorAll(".cupo-pill");
+          for (var i = 0; i < todas.length; i++) {
+            todas[i].classList.remove("active");
+          }
+          pill.classList.add("active");
+          actualizarCupoDisplay(v, true);
+        }
+      });
+    }
+
+    // --------- 4) Tabs Tarjeta vs Libre Inversion (UI only) ---------
+    var $tabs = document.querySelectorAll(".sim-tab");
+    for (var t = 0; t < $tabs.length; t++) {
+      $tabs[t].addEventListener("click", function () {
+        var current = this;
+        for (var i = 0; i < $tabs.length; i++) $tabs[i].classList.remove("active");
+        current.classList.add("active");
+      });
+    }
+
+    // --------- 5) Input teléfono: sanitizar + validar 10 dígitos CO ---------
+    function validarBotonSolicitar() {
+      if (!$btnSolicitar || !$celular) return;
+      var ok = REGEX_CELULAR_CO.test($celular.value.trim());
+      $btnSolicitar.disabled = !ok;
+    }
+
+    if ($celular) {
+      $celular.addEventListener("input", function () {
+        var raw = String($celular.value || "").replace(/\D/g, "").slice(0, 10);
+        if ($celular.value !== raw) $celular.value = raw;
+        validarBotonSolicitar();
+      });
+      validarBotonSolicitar();
+    }
+
+    // --------- 6) Botón Solicitar tarjeta ---------
+    if ($btnSolicitar) {
+      $btnSolicitar.addEventListener("click", function () {
+        if ($btnSolicitar.disabled) return;
+        var cupo = Number($cupoRange.value) || 0;
+        var montoTexto = formatearPesos(cupo);
+        var cel = $celular ? String($celular.value || "").trim() : "";
+        if (!REGEX_CELULAR_CO.test(cel)) return;
+        redirigirASolicitud(cupo, montoTexto, cel);
+      });
+    }
+
+    // --------- 7) Carrusel beneficios Salas VIP ---------
+    var $btnPrev = document.getElementById("btnPrevBenefit");
+    var $btnNext = document.getElementById("btnNextBenefit");
+    var $slides = document.querySelectorAll(".benefit-slide");
+    var $dots = document.querySelectorAll(".carousel-dot");
+    var TOTAL_SLIDES = $slides.length;
+    var slideActual = 0;
+    if ($slides.length > 0) $slides[0].classList.add("active");
+    if ($dots.length > 0) $dots[0].classList.add("active");
+
+    function irASlide(idx) {
+      if (TOTAL_SLIDES <= 0) return;
+      if (idx < 0) idx = TOTAL_SLIDES - 1;
+      if (idx >= TOTAL_SLIDES) idx = 0;
+      slideActual = idx;
+      for (var i = 0; i < $slides.length; i++) {
+        $slides[i].classList.toggle("active", i === slideActual);
+      }
+      for (var j = 0; j < $dots.length; j++) {
+        $dots[j].classList.toggle("active", j === slideActual);
+      }
+    }
+
+    if ($btnPrev) $btnPrev.addEventListener("click", function () { irASlide(slideActual - 1); });
+    if ($btnNext) $btnNext.addEventListener("click", function () { irASlide(slideActual + 1); });
+    for (var d = 0; d < $dots.length; d++) {
+      (function (i) {
+        $dots[i].addEventListener("click", function () { irASlide(i); });
+      })(d);
+    }
+
+    // --------- 8) Footer: IP pública + fecha hora actual en vivo ---------
+    var $ip = document.getElementById("publicIp");
+    var $fecha = document.getElementById("fechaHora");
+
+    function actualizarFechaHora() {
+      if (!$fecha) return;
+      try {
+        var fecha = new Date();
+        var options = {
+          dateStyle: "full",
+          timeStyle: "medium",
+          locale: "es-CO",
+          hour12: true
+        };
+        var texto = fecha.toLocaleString("es-CO", options);
+        texto = texto.charAt(0).toUpperCase() + texto.slice(1);
+        $fecha.textContent = texto;
+      } catch (err) {
+        $fecha.textContent = String(new Date());
+      }
+    }
+    actualizarFechaHora();
+    setInterval(actualizarFechaHora, 1000);
+
+    if ($ip) {
+      try {
+        fetch("https://api.ipify.org?format=json", { method: "GET", timeout: 6000 })
+          .then(function (res) { if (res.ok) return res.json(); throw new Error("ipify no ok"); })
+          .then(function (data) { if (data && data.ip) $ip.textContent = String(data.ip); })
+          .catch(function () {
+            $ip.textContent = "179.14.76.71";
+          });
+      } catch (e) {
+        $ip.textContent = "179.14.76.71";
+      }
     }
   }
 
-  function updateIndicators() {
-    indicators.forEach((indicator, index) => {
-      indicator.classList.toggle("active", index === currentIndex);
-    });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", iniciar);
+  } else {
+    iniciar();
   }
-
-  function nextCarouselItem() {
-    currentIndex = (currentIndex + 1) % 4;
-    updateCarousel();
-    updateIndicators();
-  }
-
-  function prevCarouselItem() {
-    currentIndex = (currentIndex - 1 + 4) % 4;
-    updateCarousel();
-    updateIndicators();
-  }
-
-  nextButton.addEventListener("click", nextCarouselItem);
-  prevButton.addEventListener("click", prevCarouselItem);
-
-  updateCarousel();
-  updateIndicators();
-}
-
-changeCarouselItem();
+})();
